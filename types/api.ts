@@ -83,3 +83,21 @@ export interface QuizResponse {
   title: string
   questions: QuizQuestion[]
 }
+
+/**
+ * Document & Study Materials types
+ */
+export interface DocumentSummary {
+  title: string
+  overview: string
+  key_concepts: Array<{
+    concept: string
+    explanation: string
+  }>
+  detailed_summary: string
+  key_takeaways: string[]
+}
+
+export interface SummarizeDocumentResponse {
+  summary: DocumentSummary
+}

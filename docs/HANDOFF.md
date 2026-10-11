@@ -273,3 +273,31 @@ Le Sprint 2 a complété l'interface utilisateur web d'EduFlow avec un design pr
   - `tsc --noEmit` : **0 erreur**
   - `eslint` : **0 avertissement, 0 erreur**
   - `next build --webpack` : **0 erreur** (14 routes compilées avec succès)
+
+### ✅ Module 5 & 6 : Gestionnaire de Cours & Interactions Documentaires (Synthèse, Flashcards 3D & Quiz) (Validé)
+- **Services IA Gemini :**
+  - [`lib/gemini/summarize-document.ts`](file:///lib/gemini/summarize-document.ts) : extraction cognitive structurée par `gemini-3.8-flash` (titre, vue d'ensemble, concepts clés avec explications, synthèse détaillée Markdown, points essentiels pour l'examen). Validation Zod `documentSummarySchema` + retry avec injection d'erreur.
+  - [`lib/gemini/generate-flashcards.ts`](file:///lib/gemini/generate-flashcards.ts) : générateur de fiches de mémorisation active atomiques (question, réponse concise, catégorie). Validation Zod `flashcardsResponseSchema` + retry exponentiel.
+  - [`lib/gemini/generate-quiz.ts`](file:///lib/gemini/generate-quiz.ts) : générateur de QCM formatifs stricts à 4 options avec 1 réponse exacte, 3 distracteurs réalistes et explication didactique approfondie. Validation Zod `quizResponseSchema` + retry exponentiel.
+- **Routes API Implémentées :**
+  - `GET /api/documents` : liste des documents de cours de l'utilisateur stockés en base Supabase (avec fallback en mémoire).
+  - `POST /api/documents` : création et enregistrement de cours (métadonnées et stockage).
+  - `DELETE /api/documents?id=...` : suppression de cours.
+  - `POST /api/documents/summarize` : endpoint de génération de synthèse d'étude avec validation Zod.
+  - `POST /api/documents/flashcards` : endpoint de génération de fiches mémoires au format JSON.
+  - `POST /api/documents/quiz` : endpoint de génération de QCM interactifs au format JSON.
+- **Frontend Connecté :**
+  - [`components/documents/flashcard-deck.tsx`](file:///components/documents/flashcard-deck.tsx) : jeu de cartes 3D avec animation de retournement (flip Framer Motion `rotateY: 180`), auto-évaluation "Je maîtrise" / "À revoir", compteur, mélange et barre de progression animée.
+  - [`components/documents/quiz-runner.tsx`](file:///components/documents/quiz-runner.tsx) : moteur de QCM interactif pas-à-pas avec validation instantanée (vert/rouge), révélation des explications pédagogiques, calcul du score final en pourcentage et récapitulatif détaillé.
+  - [`hooks/use-documents.ts`](file:///hooks/use-documents.ts) : hooks clients `useDocuments()`, `useSummarizeDocument()`, `useGenerateFlashcards()`, `useGenerateQuiz()` avec gestion des états d'erreur, succès et chargement.
+  - [`app/cours/page.tsx`](file:///app/cours/page.tsx) : hub d'apprentissage complet avec sélecteur de cours, modale d'ajout de cours personnalisés, et 4 onglets : Synthèse IA, Flashcards, Quiz interactif et Source brute.
+  - [`components/layout/app-shell.tsx`](file:///components/layout/app-shell.tsx) : ajout de "Cours & Quiz" (`/cours`) dans le menu desktop et la barre mobile (`grid-cols-6`).
+- **Test d'Intégration Réel :**
+  - Cours testé : *Algorithmique : Graphes & Plus Courts Chemins* (Dijkstra, Bellman-Ford, Floyd-Warshall).
+  - Résultat Résumé : 4 concepts clés extraits (ex: graphe orienté pondéré, complexité en tas de Fibonacci $O(|E| + |V| \log |V|)$).
+  - Résultat Flashcards : 4 cartes générées avec questions atomiques précises (ex: condition de poids positifs pour Dijkstra).
+  - Résultat Quiz : 3 questions QCM à 4 options avec distracteurs subtils et justifications pédagogiques irréprochables.
+- **Vérifications :**
+  - `tsc --noEmit` : **0 erreur**
+  - `eslint` : **0 avertissement, 0 erreur**
+  - `next build --webpack` : **0 erreur** (17 routes compilées avec succès)
