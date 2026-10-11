@@ -224,4 +224,14 @@ Le Sprint 2 a complété l'interface utilisateur web d'EduFlow avec un design pr
   - `eslint` : **0 avertissement, 0 erreur**
   - `next build --webpack` : **0 erreur** (10 routes compilées)
 
+### 🗄️ Déploiement & Configuration Supabase en Production (Validé)
+- **Projet Supabase :** `eduflow` (`ref: czybavolmkeepfordtep`, région `eu-west-3` Paris).
+- **URL du projet :** `https://czybavolmkeepfordtep.supabase.co`
+- **Schéma SQL & RLS :**
+  - 7 tables créées avec **RLS activé** : `profiles`, `subjects`, `exams`, `schedule_entries`, `documents`, `pomodoro_sessions`, `chat_messages`.
+  - Politiques RLS complètes (SELECT, INSERT, UPDATE, DELETE) pour chaque table basées sur `auth.uid() = user_id` (ou `auth.uid() = id` pour `profiles`).
+  - Buckets de stockage privés `schedules` et `documents` créés avec politiques d'isolation par utilisateur (`{user_id}/*`).
+- **Configuration :** Variables d'environnement réelles renseignées dans [`.env.local`](file:///.env.local), connexion testée et confirmée.
+
+
 
