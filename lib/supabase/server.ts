@@ -47,34 +47,80 @@ export type RequireUserFailure = {
 
 export type RequireUserResult = RequireUserSuccess | RequireUserFailure
 
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  return !!(
+    url &&
+    key &&
+    !url.includes('placeholder') &&
+    !url.includes('your-project') &&
+    url.startsWith('http')
+  )
+}
+
 /**
  * Validates the user session from cookies.
  * If unauthenticated, returns an error response with HTTP status 401.
+ * If Supabase is not configured yet (dev mode), provides a demo user.
  */
 export async function requireUser(): Promise<RequireUserResult> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  if (!isSupabaseConfigured()) {
+    // Development fallback when Supabase keys are not set
+    const demoUser = {
+      id: '00000000-0000-0000-0000-000000000000',
+      app_metadata: {},
+      user_metadata: { full_name: 'Fatou Ndiaye' },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    } as unknown as User
 
-  if (error || !user) {
-    return {
-      user: null,
-      supabase,
-      error: NextResponse.json<ApiResponse<never>>(
-        {
-          success: false,
-          error: 'Unauthorized: Session missing or invalid',
-        },
-        { status: 401 }
-      ),
+    try {
+      const supabase = await createClient()
+      return { user: demoUser, supabase, error: null }
+    } catch {
+      return { user: demoUser, supabase: null as unknown as SupabaseClient<Database>, error: null }
     }
   }
 
-  return {
-    user,
-    supabase,
-    error: null,
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error || !user) {
+      return {
+        user: null,
+        supabase,
+        error: NextResponse.json<ApiResponse<never>>(
+          {
+            success: false,
+            error: 'Unauthorized: Session missing or invalid',
+          },
+          { status: 401 }
+        ),
+      }
+    }
+
+    return {
+      user,
+      supabase,
+      error: null,
+    }
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Auth error'
+    return {
+      user: null,
+      supabase: null as unknown as SupabaseClient<Database>,
+      error: NextResponse.json<ApiResponse<never>>(
+        {
+          success: false,
+          error: message,
+        },
+        { status: 500 }
+      ),
+    }
   }
 }

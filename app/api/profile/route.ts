@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { requireUser } from '@/lib/supabase/server'
+import { requireUser, isSupabaseConfigured } from '@/lib/supabase/server'
+import { getDevStore } from '@/lib/supabase/dev-store'
 import { ApiResponse } from '@/types/api'
 import { Profile, Database } from '@/types/database'
 
@@ -20,6 +21,14 @@ export async function GET(): Promise<NextResponse<ApiResponse<Profile>>> {
     }
 
     const { user, supabase } = auth
+
+    if (!isSupabaseConfigured()) {
+      const devProfile = getDevStore().profile
+      return NextResponse.json<ApiResponse<Profile>>({
+        success: true,
+        data: devProfile,
+      })
+    }
 
     const { data, error } = await supabase
       .from('profiles')
@@ -106,6 +115,19 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
       ...validatedData,
       avatar_url: validatedData.avatar_url || null,
       updated_at: new Date().toISOString(),
+    }
+
+    if (!isSupabaseConfigured()) {
+      const current = getDevStore().profile
+      const updated: Profile = {
+        ...current,
+        ...updatePayload,
+      }
+      getDevStore().profile = updated
+      return NextResponse.json<ApiResponse<Profile>>({
+        success: true,
+        data: updated,
+      })
     }
 
     const { data, error } = await supabase

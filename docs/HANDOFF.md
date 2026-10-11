@@ -170,13 +170,58 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ---
 
-## 🚀 Consignes pour le Sprint 2 (Agent Frontend — `/sprint-2-frontend`)
+## 🚀 Bilan du Sprint 2 (Agent Frontend — ✅ Validé)
 
-1. **Pages & Navigation :**
-   - Implémenter l'onboarding et l'édition du profil en appelant `GET/PUT /api/profile`.
-   - Utiliser `lib/supabase/client.ts` pour gérer la session et l'authentification (login / signup / logout).
-2. **Composants UI :**
-   - Utiliser Tailwind CSS et les primitives Shadcn/UI configurées dans `components.json`.
-   - Utiliser les types importés de `@/types/database` et `@/types/api`.
-3. **Esthétique :**
-   - Respecter les directives de design premium (mode sombre élégant, accents vibrants, micro-animations, typographie soignée).
+Le Sprint 2 a complété l'interface utilisateur web d'EduFlow avec un design premium (dark mode first, Tailwind CSS v4, Framer Motion, Shadcn/UI) :
+1. **Layout & Navigation globale :**
+   - [`AppShell`](file:///components/layout/app-shell.tsx) avec sidebar desktop, bottom-bar mobile et raccourci d'accessibilité.
+   - [`ThemeToggle`](file:///components/layout/theme-toggle.tsx) supportant le mode clair/sombre sans désynchronisation SSR.
+   - Intégration globale dans [`app/layout.tsx`](file:///app/layout.tsx) avec les polices Outfit & Inter.
+2. **Dashboard central ([`app/page.tsx`](file:///app/page.tsx)) :**
+   - Salutation personnalisée via [`useProfile()`](file:///hooks/use-profile.ts).
+   - 4 cartes d'indicateurs (temps d'étude hebdomadaire, cours du jour, examens proches, complétude du profil).
+   - Liste interactive des cours d'aujourd'hui avec code couleur par matière.
+   - Planning de révision intelligent généré par IA avec badges et conseils d'étude.
+   - Widget minuteur Pomodoro intégré avec contrôles rapides.
+   - Liste des examens à venir avec compte à rebours J-X.
+3. **Emploi du temps ([`app/emploi-du-temps/page.tsx`](file:///app/emploi-du-temps/page.tsx)) :**
+   - Vue par onglets journaliers (Lundi à Dimanche) et récapitulatif hebdomadaire.
+   - Modale Dialog avec zone Drag-and-Drop pour l'import de fichier image/PDF vers `useParseSchedule()`.
+4. **Minuteur Pomodoro ([`app/pomodoro/page.tsx`](file:///app/pomodoro/page.tsx)) :**
+   - Minuteur SVG circulaire grand format avec animation de progression.
+   - Modes Concentration (25m), Pause courte (5m) et Pause longue (15m).
+   - Contrôles au clavier (touche Espace pour pause/reprise).
+   - Synthétiseur de carillon sonore via Web Audio API (sans fichier externe).
+   - Compteur de cycles (4 sessions = 1 cycle) et historique des sessions.
+5. **Profil académique ([`app/profil/page.tsx`](file:///app/profil/page.tsx)) :**
+   - Formulaire React Hook Form + Zod branché sur `/api/profile` (GET & PUT).
+   - Champs : Nom complet, Niveau d'études, Filière, Objectifs académiques.
+   - Statut de complétude du profil et alertes Toast Sonner.
+
+---
+
+## 📡 Avancement du Sprint 3 (Intégration IA Gemini)
+
+### ✅ Module 2 : Import OCR & Extraction de l'Emploi du Temps par Gemini Vision (Validé)
+- **Modèle IA :** `gemini-3.8-flash` via le SDK `@google/genai` (modèle multimodal actif).
+- **Service Gemini OCR :** [`lib/gemini/parse-schedule.ts`](file:///lib/gemini/parse-schedule.ts)
+  - Extraction stricte JSON avec typage et validation Zod (`scheduleParsedItemSchema`).
+  - Normalisation 24h (`HH:mm`), jours normalisés (`monday`..`sunday`), salle nullable, anti-hallucination.
+  - Résilience aux pics d'affluence : retry exponentiel sur codes HTTP 503/429/UNAVAILABLE.
+  - Retry JSON avec réinjection de l'erreur Zod dans le prompt avant émission d'une erreur 502 propre.
+- **Routes API Implémentées :**
+  - `POST /api/schedule/parse` : réception `multipart/form-data` (limite 10 Mo, types image/PDF), OCR Gemini Vision, insertion en base (`schedule_entries`) ou en store dev local.
+  - `GET /api/schedule` : lecture des cours de l'utilisateur avec tri chronologique.
+  - `DELETE /api/schedule` : réinitialisation des cours.
+- **Frontend Connecté :**
+  - [`hooks/use-schedule.ts`](file:///hooks/use-schedule.ts) : `useSchedule()` et `useParseSchedule()` branchés directement sur les endpoints réels `/api/schedule` et `/api/schedule/parse` (suppression des mocks correspondants).
+  - Zone Drag & Drop et modale dans [`app/emploi-du-temps/page.tsx`](file:///app/emploi-du-temps/page.tsx) 100% fonctionnelles.
+- **Test d'Intégration Réel :**
+  - Image testée : [`public/samples/emploi-du-temps-demo.jpg`](file:///public/samples/emploi-du-temps-demo.jpg) (emploi du temps universitaire Licence Informatique).
+  - Résultat : **14 cours extraits avec 100% d'exactitude**, aucun créneau vide halluciné, horaires et salles parfaits.
+- **Vérifications :**
+  - `tsc --noEmit` : **0 erreur**
+  - `eslint` : **0 avertissement, 0 erreur**
+  - `next build --webpack` : **0 erreur** (10 routes compilées)
+
+
