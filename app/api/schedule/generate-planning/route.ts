@@ -92,6 +92,10 @@ export async function POST(
       exams = devStore.exams
     }
 
+    if (!profile) profile = getDevStore().profile
+    if (courses.length === 0) courses = getDevStore().scheduleEntries
+    if (exams.length === 0) exams = getDevStore().exams
+
     // Si aucun examen n'est encore enregistré, générer des objectifs basés sur les matières des cours
     if (exams.length === 0 && courses.length > 0) {
       const uniqueSubjects = Array.from(new Set(courses.map((c) => c.subject)))

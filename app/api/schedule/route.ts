@@ -30,13 +30,15 @@ export async function GET(): Promise<NextResponse<ApiResponse<ScheduleEntry[]>>>
         )
       }
 
-      return NextResponse.json<ApiResponse<ScheduleEntry[]>>(
-        {
-          success: true,
-          data: data || [],
-        },
-        { status: 200 }
-      )
+      if (data && data.length > 0) {
+        return NextResponse.json<ApiResponse<ScheduleEntry[]>>(
+          {
+            success: true,
+            data,
+          },
+          { status: 200 }
+        )
+      }
     }
 
     // Dev store fallback

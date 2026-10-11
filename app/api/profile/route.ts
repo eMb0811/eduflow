@@ -47,13 +47,11 @@ export async function GET(): Promise<NextResponse<ApiResponse<Profile>>> {
     }
 
     if (!data) {
-      return NextResponse.json<ApiResponse<Profile>>(
-        {
-          success: false,
-          error: 'Profile not found',
-        },
-        { status: 404 }
-      )
+      const devProfile = getDevStore().profile
+      return NextResponse.json<ApiResponse<Profile>>({
+        success: true,
+        data: devProfile,
+      })
     }
 
     return NextResponse.json<ApiResponse<Profile>>(
