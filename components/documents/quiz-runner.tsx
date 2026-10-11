@@ -93,32 +93,32 @@ export function QuizRunner({ quiz, onReset }: QuizRunnerProps) {
           transition={{ duration: 0.4 }}
           className="space-y-4"
         >
-          <div className="inline-flex p-4 rounded-full bg-primary/10 border border-primary/20 text-primary">
+          <div className="inline-flex p-4 rounded-xl bg-primary/10 border border-primary/20 text-primary">
             {percentage >= 80 ? (
-              <Trophy className="h-12 w-12 text-amber-400" />
+              <Trophy className="h-10 w-10 text-amber-500" />
             ) : percentage >= 50 ? (
-              <Award className="h-12 w-12 text-primary" />
+              <Award className="h-10 w-10 text-primary" />
             ) : (
-              <AlertCircle className="h-12 w-12 text-rose-400" />
+              <AlertCircle className="h-10 w-10 text-muted-foreground" />
             )}
           </div>
 
           <div>
             <h3 className="text-2xl font-bold tracking-tight text-foreground">{quiz.title}</h3>
-            <p className="text-sm text-muted-foreground mt-1">Quiz complété</p>
+            <p className="text-sm text-muted-foreground mt-1">Évaluation complétée</p>
           </div>
 
           <div className="py-4">
             <div className="text-5xl font-extrabold text-foreground tracking-tight">
               {score} <span className="text-2xl font-medium text-muted-foreground">/ {total}</span>
             </div>
-            <p className="text-base font-medium mt-2">
+            <p className="text-sm font-medium mt-2">
               {percentage >= 80 ? (
-                <span className="text-emerald-400">🎉 Excellent score ! Tu maîtrises ce cours à la perfection.</span>
+                <span className="text-emerald-600 dark:text-emerald-400">Excellent résultat : notions fondamentales acquises avec succès.</span>
               ) : percentage >= 50 ? (
-                <span className="text-indigo-400">👍 Bon travail ! Quelques notions méritent d’être revues.</span>
+                <span className="text-primary">Bonne compréhension : quelques notions méritent d&apos;être approfondies.</span>
               ) : (
-                <span className="text-amber-400">💪 Ne te décourage pas ! Relis la synthèse et réessaie.</span>
+                <span className="text-amber-600 dark:text-amber-400">Révision recommandée : relisez la synthèse avant de retenter le quiz.</span>
               )}
             </p>
           </div>

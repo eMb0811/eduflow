@@ -104,25 +104,25 @@ export default function PomodoroPage() {
       </div>
 
       {/* Main Timer Display Card */}
-      <Card className="relative overflow-hidden rounded-3xl border-border/80 bg-gradient-to-b from-card via-card to-primary/5 p-6 shadow-lg shadow-black/5 backdrop-blur-2xl sm:p-10">
+      <Card className="overflow-hidden rounded-xl border border-border bg-card p-6 shadow-xs sm:p-8">
         {/* Mode Selector Tabs */}
-        <div className="mx-auto flex max-w-md items-center justify-center gap-1.5 rounded-2xl border border-border/80 bg-background/60 p-1.5 backdrop-blur-md">
+        <div className="mx-auto flex max-w-md items-center justify-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
           {modes.map(({ key, label, icon: Icon }) => {
             const isActive = mode === key
             return (
               <button
                 key={key}
                 onClick={() => switchMode(key)}
-                className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold transition-all sm:text-sm ${
+                className={`relative flex flex-1 items-center justify-center gap-2 rounded-md py-1.5 text-xs font-medium transition-all sm:text-sm ${
                   isActive
-                    ? "text-primary-foreground shadow-sm"
+                    ? "text-primary-foreground font-semibold shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="pomodoro-mode-active"
-                    className="absolute inset-0 rounded-xl bg-primary"
+                    className="absolute inset-0 rounded-md bg-primary"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}

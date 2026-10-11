@@ -78,23 +78,23 @@ export default function AssistantPage() {
   return (
     <div className="flex h-[calc(100vh-8.5rem)] flex-col gap-4">
       {/* Header */}
-      <div className="flex shrink-0 items-center justify-between rounded-2xl border border-border/70 bg-card/70 px-5 py-3.5 backdrop-blur-xl">
+      <div className="flex shrink-0 items-center justify-between rounded-lg border border-border bg-card px-5 py-3.5">
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-tr from-primary to-indigo-500 text-white shadow-md shadow-primary/25">
-            <Sparkles className="size-5" />
+          <span className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground">
+            <Sparkles className="size-4" />
           </span>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-heading text-lg font-bold tracking-tight text-foreground">
-                Assistant Pédagogique
+                Assistant d&apos;études
               </h1>
-              <Badge variant="secondary" className="gap-1.5 text-[11px] font-normal text-emerald-500 bg-emerald-500/10 border-emerald-500/20">
-                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Gemini 3.8 Flash
+              <Badge variant="outline" className="gap-1.5 text-[11px] font-normal text-muted-foreground">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Tuteur interactif
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              {profile?.full_name ? `À ton service, ${profile.full_name}` : "Tuteur académique IA pour tes études"}
+              {profile?.full_name ? `Espace de travail de ${profile.full_name}` : "Aide aux devoirs et explications de cours"}
             </p>
           </div>
         </div>

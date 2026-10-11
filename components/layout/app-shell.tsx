@@ -27,7 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/emploi-du-temps", label: "Emploi du temps", icon: CalendarDays },
   { href: "/cours", label: "Cours & Quiz", icon: BookOpen },
-  { href: "/assistant", label: "Assistant IA", icon: Sparkles },
+  { href: "/assistant", label: "Assistant", icon: Sparkles },
   { href: "/pomodoro", label: "Pomodoro", icon: Timer },
   { href: "/profil", label: "Profil", icon: UserRound },
 ]
@@ -40,14 +40,14 @@ function Logo() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2.5 rounded-lg px-2 py-1"
+      className="flex items-center gap-2.5 rounded-md px-2 py-1"
       aria-label="EduFlow, retour au tableau de bord"
     >
-      <span className="bg-brand-gradient grid size-9 place-items-center rounded-xl text-white shadow-lg shadow-primary/30">
-        <GraduationCap className="size-5" aria-hidden />
+      <span className="grid size-8 place-items-center rounded-md bg-primary text-primary-foreground font-semibold">
+        <GraduationCap className="size-4.5" aria-hidden />
       </span>
-      <span className="font-heading text-xl font-semibold tracking-tight">
-        Edu<span className="text-gradient">Flow</span>
+      <span className="font-heading text-lg font-bold tracking-tight text-foreground">
+        EduFlow
       </span>
     </Link>
   )
@@ -66,15 +66,15 @@ function UserChip() {
   return (
     <Link
       href="/profil"
-      className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-sidebar-accent"
+      className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-sidebar-accent"
     >
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
+      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-secondary text-xs font-semibold text-secondary-foreground border border-border">
         {initials || "?"}
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-sm font-medium">{name}</span>
-        <span className="block truncate text-xs text-muted-foreground">
-          {profile?.field_of_study ?? "Compléter mon profil"}
+        <span className="block truncate text-xs font-medium text-foreground">{name}</span>
+        <span className="block truncate text-[11px] text-muted-foreground">
+          {profile?.field_of_study ?? "Profil"}
         </span>
       </span>
     </Link>
@@ -85,14 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
-    <div className="relative flex min-h-dvh w-full">
-      {/* Ambient background blobs */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="animate-float absolute -top-32 -left-24 size-[28rem] rounded-full bg-primary/15 blur-3xl" />
-        <div className="animate-float absolute top-1/3 -right-32 size-[26rem] rounded-full bg-brand-2/15 blur-3xl [animation-delay:-3s]" />
-        <div className="animate-float absolute -bottom-40 left-1/3 size-[24rem] rounded-full bg-chart-4/10 blur-3xl [animation-delay:-5s]" />
-      </div>
-
+    <div className="relative flex min-h-dvh w-full bg-background">
       <a
         href="#contenu"
         className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -101,9 +94,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </a>
 
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4 backdrop-blur-xl md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4 md:flex">
         <Logo />
-        <nav aria-label="Navigation principale" className="mt-8 flex flex-1 flex-col gap-1">
+        <nav aria-label="Navigation principale" className="mt-6 flex flex-1 flex-col gap-1">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href)
             return (
@@ -112,42 +105,61 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "text-sidebar-accent-foreground"
-                    : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
                 )}
               >
-                {active && (
-                  <motion.span
-                    layoutId="sidebar-active"
-                    className="absolute inset-0 -z-10 rounded-xl bg-sidebar-accent"
-                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                  />
-                )}
-                <Icon className="size-[18px]" aria-hidden />
+                <Icon className="size-4 shrink-0" aria-hidden />
                 {label}
               </Link>
             )
           })}
         </nav>
-        <div className="flex items-center justify-between gap-2 border-t border-sidebar-border pt-4">
-          <div className="min-w-0 flex-1">
-            <UserChip />
+
+        <div className="space-y-3 border-t border-sidebar-border pt-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <UserChip />
+            </div>
+            <ThemeToggle id="theme-toggle-desktop" />
           </div>
-          <ThemeToggle id="theme-toggle-desktop" />
+
+          <div className="flex items-center justify-between px-1 text-[11px] text-muted-foreground">
+            <Link href="/cgu" className="hover:underline">CGU</Link>
+            <span>•</span>
+            <Link href="/confidentialite" className="hover:underline">Confidentialité</Link>
+            <span>•</span>
+            <span>v1.0</span>
+          </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background/70 px-4 py-3 backdrop-blur-xl md:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background px-4 py-3 md:hidden">
           <Logo />
           <ThemeToggle id="theme-toggle-mobile" />
         </header>
 
-        <main id="contenu" className="flex-1 px-4 pt-6 pb-28 sm:px-6 md:px-10 md:pt-10 md:pb-12">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+        <main id="contenu" className="flex-1 px-4 pt-6 pb-24 sm:px-6 md:px-8 md:pt-8 md:pb-12">
+          <div className="mx-auto w-full max-w-6xl space-y-12">
+            {children}
+
+            <footer className="border-t border-border pt-6 pb-4 text-xs text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p>© {new Date().getFullYear()} EduFlow. Tous droits réservés.</p>
+              <div className="flex items-center gap-4">
+                <Link href="/cgu" className="hover:text-foreground transition-colors">
+                  Conditions Générales d&apos;Utilisation
+                </Link>
+                <span>•</span>
+                <Link href="/confidentialite" className="hover:text-foreground transition-colors">
+                  Politique de Confidentialité
+                </Link>
+              </div>
+            </footer>
+          </div>
         </main>
       </div>
 

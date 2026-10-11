@@ -61,7 +61,7 @@ export default function CoursPage() {
 
   const handleGenerateSummary = async () => {
     try {
-      toast.info("Génération de la synthèse d'étude avec Gemini...")
+      toast.info("Génération de la synthèse d'étude...")
       const res = await summarize({
         text: selectedCourse.content,
         titleHint: selectedCourse.title,
@@ -150,12 +150,12 @@ export default function CoursPage() {
               <BookOpen className="h-5 w-5" />
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
-              Cours & Révisions IA
+              Cours & Révisions
             </h1>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             Générez des synthèses d’étude approfondies, des flashcards de mémorisation active et des quiz
-            d’auto-évaluation via Gemini.
+            d’auto-évaluation.
           </p>
         </div>
 
@@ -346,7 +346,7 @@ export default function CoursPage() {
               <div className="py-16 text-center space-y-3">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
                 <p className="text-sm font-medium text-foreground">Analyse cognitive du cours en cours...</p>
-                <p className="text-xs text-muted-foreground">Gemini extrait les concepts fondamentaux et structure la synthèse.</p>
+                <p className="text-xs text-muted-foreground">Extraction des concepts fondamentaux et structuration de la synthèse.</p>
               </div>
             ) : activeSummary ? (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -409,7 +409,7 @@ export default function CoursPage() {
                 <div className="space-y-1">
                   <h3 className="text-base font-semibold text-foreground">Aucune synthèse générée</h3>
                   <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                    Cliquez sur le bouton ci-dessous pour lancer l’analyse IA de ce cours par Gemini.
+                    Cliquez sur le bouton ci-dessous pour générer la synthèse de ce cours.
                   </p>
                 </div>
                 <Button onClick={handleGenerateSummary} className="gap-2 text-xs">
@@ -453,7 +453,7 @@ export default function CoursPage() {
               <div className="py-16 text-center space-y-3">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-400" />
                 <p className="text-sm font-medium text-foreground">Création du QCM interactif en cours...</p>
-                <p className="text-xs text-muted-foreground">Gemini rédige 5 questions avec distracteurs réalistes et explications.</p>
+                <p className="text-xs text-muted-foreground">Rédaction de 5 questions formatrices avec explications détaillées.</p>
               </div>
             ) : activeQuiz ? (
               <QuizRunner quiz={activeQuiz} />

@@ -7,7 +7,6 @@ import { motion } from "framer-motion"
 import {
   CalendarDays,
   Clock,
-  Sparkles,
   Timer,
   BookOpen,
   ArrowRight,
@@ -83,40 +82,38 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-sm backdrop-blur-xl sm:p-8">
+      <div className="overflow-hidden rounded-xl border border-border bg-card p-6 shadow-xs">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                <Sparkles className="size-3.5" /> Assistant IA Actif
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground">
+                <CalendarDays className="size-3.5 text-primary" /> Année académique
               </span>
               <span className="capitalize text-xs text-muted-foreground">{formattedDate}</span>
             </div>
-            <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
               {isProfileLoading ? (
                 <Skeleton className="h-9 w-64" />
               ) : (
-                <>
-                  Bonjour <span className="text-gradient">{studentName}</span> 👋
-                </>
+                <>Bonjour {studentName}</>
               )}
             </h1>
-            <p className="text-sm text-muted-foreground sm:text-base">
+            <p className="text-sm text-muted-foreground">
               {profile?.field_of_study
-                ? `${profile.field_of_study} • Prêt pour tes sessions d'aujourd'hui ?`
-                : "Organise tes cours, suis ton planning et réussis tes examens en toute sérénité."}
+                ? `${profile.field_of_study} • Emploi du temps et sessions de travail du jour`
+                : "Organisation des cours, planning d'étude et suivi des examens."}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <Button asChild variant="outline" size="sm" className="rounded-xl">
+            <Button asChild variant="outline" size="sm" className="rounded-md">
               <Link href="/emploi-du-temps">
                 <CalendarDays className="size-4" /> Emploi du temps
               </Link>
             </Button>
-            <Button asChild size="sm" className="rounded-xl shadow-md shadow-primary/20">
+            <Button asChild size="sm" className="rounded-md">
               <Link href="/pomodoro">
-                <Timer className="size-4" /> Lancer Pomodoro
+                <Timer className="size-4" /> Minuteur de travail
               </Link>
             </Button>
           </div>
@@ -264,18 +261,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* AI-Generated Revision Plan */}
-          <Card className="rounded-2xl border-border/80 bg-card/80 backdrop-blur-xl">
+          {/* Revision Plan */}
+          <Card className="rounded-xl border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg font-semibold">Planning de révision intelligent</CardTitle>
-                  <Badge variant="secondary" className="gap-1 text-[11px] font-normal text-primary">
-                    <Sparkles className="size-3" /> Gemini
+                  <CardTitle className="text-lg font-semibold">Planning de travail recommandé</CardTitle>
+                  <Badge variant="outline" className="rounded-md text-[11px] font-normal">
+                    Automatisé
                   </Badge>
                 </div>
                 <CardDescription>
-                  Créneaux d&apos;étude optimisés selon tes cours et tes examens
+                  Créneaux d&apos;étude calculés selon vos cours et vos examens
                 </CardDescription>
               </div>
               <Button
@@ -283,8 +280,8 @@ export default function DashboardPage() {
                 size="sm"
                 onClick={() => regeneratePlanningMutation.mutate(todayKey)}
                 disabled={regeneratePlanningMutation.isPending || isPlanningLoading}
-                className="gap-1.5 text-xs rounded-xl"
-                title="Régénérer le planning avec Gemini"
+                className="gap-1.5 text-xs rounded-md"
+                title="Régénérer le planning"
               >
                 <RotateCcw
                   className={`size-3.5 ${

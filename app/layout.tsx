@@ -22,17 +22,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "EduFlow — Assistant d'études intelligent",
+    default: "EduFlow : Organisation académique et révisions",
     template: "%s · EduFlow",
   },
   description:
-    "EduFlow organise ton emploi du temps, planifie tes révisions et t'accompagne avec l'IA : Pomodoro, flashcards, quiz et chat pédagogique.",
+    "EduFlow organise votre emploi du temps, planifie vos créneaux de travail et structure vos révisions : minuteur de concentration, flashcards et quiz formatifs.",
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#12131f" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141518" },
   ],
 };
 

@@ -11,7 +11,6 @@ import {
   Plus,
   Clock,
   MapPin,
-  Sparkles,
   Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -104,27 +103,27 @@ export default function EmploiDuTempsPage() {
       {/* Header with Title and Import Trigger */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
             Emploi du temps
           </h1>
           <p className="text-sm text-muted-foreground sm:text-base">
-            Consulte tes cours de la semaine et synchronise ton planning avec Gemini OCR.
+            Consultez vos cours hebdomadaires et vos créneaux universitaires.
           </p>
         </div>
 
         <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-xl shadow-md shadow-primary/20 gap-2">
+            <Button className="rounded-md gap-2">
               <UploadCloud className="size-4" /> Importer un emploi du temps
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogContent className="sm:max-w-md rounded-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Sparkles className="size-5 text-primary" /> Extraction par IA (Gemini Vision)
+                <UploadCloud className="size-5 text-primary" /> Numériser un emploi du temps
               </DialogTitle>
               <DialogDescription>
-                Téléverse une photo ou un fichier PDF de ton emploi du temps. L&apos;IA extraira automatiquement tes matières, salles et horaires.
+                Téléversez une photo ou un fichier PDF de votre emploi du temps pour extraire automatiquement vos matières, salles et horaires.
               </DialogDescription>
             </DialogHeader>
 

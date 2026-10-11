@@ -11,8 +11,8 @@ import {
   Target,
   Save,
   CheckCircle2,
-  Sparkles,
   Loader2,
+  AlertCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -98,21 +98,21 @@ export default function ProfilPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
             Profil académique
           </h1>
           <p className="text-sm text-muted-foreground sm:text-base">
-            Personnalise tes informations pour permettre à Gemini d&apos;adapter ton planning de révision et tes quiz.
+            Gérez vos informations universitaires pour personnaliser vos plannings de travail et vos sessions de révision.
           </p>
         </div>
 
         <div>
           {isLoading ? (
-            <Skeleton className="h-7 w-28 rounded-full" />
+            <Skeleton className="h-7 w-28 rounded-md" />
           ) : (
             <Badge
               variant={complete ? "secondary" : "outline"}
-              className={`rounded-full px-3 py-1 text-xs gap-1.5 ${
+              className={`rounded-md px-2.5 py-1 text-xs gap-1.5 ${
                 complete ? "text-success border-success/30 bg-success/10" : "text-warning border-warning/30 bg-warning/10"
               }`}
             >
@@ -122,7 +122,7 @@ export default function ProfilPage() {
                 </>
               ) : (
                 <>
-                  <Sparkles className="size-3.5" /> À compléter
+                  <AlertCircle className="size-3.5" /> Informations incomplètes
                 </>
               )}
             </Badge>
