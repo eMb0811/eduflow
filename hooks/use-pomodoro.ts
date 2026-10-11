@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { usePomodoroStore, POMODORO_LABELS } from "@/lib/store/pomodoro-store"
+import { savePomodoroSession } from "@/hooks/use-pomodoro-stats"
 
 /** Short three-note chime generated with the Web Audio API (no asset needed). */
 function playChime(ctxRef: React.RefObject<AudioContext | null>) {
@@ -51,6 +52,10 @@ export function usePomodoroTimer() {
       if (current >= endsAt) {
         const finished = complete()
         if (finished) {
+          void savePomodoroSession({
+            duration_minutes: finished.duration_minutes,
+            type: finished.type,
+          })
           if (usePomodoroStore.getState().soundEnabled) playChime(audioRef)
           const next = usePomodoroStore.getState().mode
           toast.success(

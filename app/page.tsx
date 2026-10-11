@@ -34,7 +34,7 @@ import {
   timeToMinutes,
 } from "@/hooks/use-schedule"
 import { usePomodoroTimer, formatClock } from "@/hooks/use-pomodoro"
-import { mockWeeklyStudyMinutes } from "@/lib/mocks"
+import { usePomodoroStats } from "@/hooks/use-pomodoro-stats"
 
 export default function DashboardPage() {
   const today = useCurrentDate()
@@ -69,10 +69,12 @@ export default function DashboardPage() {
       .sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time))
   }, [schedule, todayKey])
 
+  const { stats: pomodoroStats, isLoading: isStatsLoading } = usePomodoroStats()
+
   // Total weekly minutes studied
   const weeklyMinutes = useMemo(() => {
-    return mockWeeklyStudyMinutes.reduce((acc, curr) => acc + curr, 0)
-  }, [])
+    return pomodoroStats.weekly_study_minutes.reduce((acc, curr) => acc + curr, 0)
+  }, [pomodoroStats.weekly_study_minutes])
   const weeklyHours = Math.floor(weeklyMinutes / 60)
   const weeklyRemainingMinutes = weeklyMinutes % 60
 
@@ -130,7 +132,11 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">
-              {weeklyHours}h {weeklyRemainingMinutes > 0 ? `${weeklyRemainingMinutes}m` : ""}
+              {isStatsLoading ? (
+                <Skeleton className="h-8 w-20" />
+              ) : (
+                <>{weeklyHours}h {weeklyRemainingMinutes > 0 ? `${weeklyRemainingMinutes}m` : ""}</>
+              )}
             </div>
             <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
               <Flame className="size-3 text-warning" /> En progression constante

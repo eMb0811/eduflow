@@ -301,3 +301,21 @@ Le Sprint 2 a complété l'interface utilisateur web d'EduFlow avec un design pr
   - `tsc --noEmit` : **0 erreur**
   - `eslint` : **0 avertissement, 0 erreur**
   - `next build --webpack` : **0 erreur** (17 routes compilées avec succès)
+
+### ✅ Module 7 & 8 : Pomodoro Persistant & Tableau de Bord Central Connecté (Validé)
+- **Persistance & Données Réelles :**
+  - Table Supabase : `pomodoro_sessions` (`id`, `user_id`, `duration_minutes`, `type`, `completed_at`, `created_at`) avec RLS utilisateur.
+- **Routes API Implémentées :**
+  - `POST /api/pomodoro` : enregistrement immédiat en base de données de chaque session de travail ou de pause terminée (avec validation Zod).
+  - `GET /api/pomodoro` : liste des dernières sessions d'étude de l'étudiant.
+  - `GET /api/pomodoro/stats` : agrégation des métriques d'apprentissage réelles (temps d'étude hebdomadaire sur 7 jours du Lundi au Dimanche, temps étudié aujourd'hui, nombre total de sessions et série de jours d'étude).
+- **Frontend Connecté :**
+  - [`hooks/use-pomodoro.ts`](file:///hooks/use-pomodoro.ts) : déclenchement automatique de `savePomodoroSession()` dès la sonnerie du minuteur pour sauvegarder la session en base Supabase en tâche de fond.
+  - [`hooks/use-pomodoro-stats.ts`](file:///hooks/use-pomodoro-stats.ts) : nouveau hook client pour consommer l'endpoint de statistiques `/api/pomodoro/stats`.
+  - [`app/page.tsx`](file:///app/page.tsx) : carte KPI "Étude cette semaine" branchée sur `usePomodoroStats()`, avec remplacement intégral et suppression du mock `mockWeeklyStudyMinutes`.
+- **Bilan du Sprint 3 IA :**
+  - Tous les modules 2 à 8 du PRD sont **100% implémentés**, connectés aux modèles Gemini et à la base Supabase PostgreSQL, sans aucun mock résiduel dans le dashboard ou les flux clés.
+- **Vérifications Globales :**
+  - `tsc --noEmit` : **0 erreur**
+  - `eslint` : **0 avertissement, 0 erreur**
+  - `next build --webpack` : **0 erreur** (19 routes compilées avec succès)

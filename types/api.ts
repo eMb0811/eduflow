@@ -101,3 +101,23 @@ export interface DocumentSummary {
 export interface SummarizeDocumentResponse {
   summary: DocumentSummary
 }
+
+/**
+ * Pomodoro & Study Stats types
+ */
+export interface PomodoroSessionInput {
+  duration_minutes: number
+  type: 'work' | 'short_break' | 'long_break'
+  completed_at?: string
+}
+
+export interface PomodoroStats {
+  weekly_study_minutes: number[] // 7 items (Lundi à Dimanche)
+  total_study_minutes_today: number
+  total_sessions_count: number
+  current_streak_days: number
+}
+
+export interface PomodoroStatsResponse {
+  stats: PomodoroStats
+}
