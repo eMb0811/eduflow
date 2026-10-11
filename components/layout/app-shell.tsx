@@ -7,6 +7,7 @@ import {
   CalendarDays,
   GraduationCap,
   LayoutDashboard,
+  Sparkles,
   Timer,
   UserRound,
   type LucideIcon,
@@ -24,6 +25,7 @@ interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/emploi-du-temps", label: "Emploi du temps", icon: CalendarDays },
+  { href: "/assistant", label: "Assistant IA", icon: Sparkles },
   { href: "/pomodoro", label: "Pomodoro", icon: Timer },
   { href: "/profil", label: "Profil", icon: UserRound },
 ]
@@ -153,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="fixed inset-x-3 bottom-3 z-40 rounded-2xl border border-border bg-background/80 p-1.5 shadow-xl shadow-black/5 backdrop-blur-xl md:hidden"
         style={{ paddingBottom: "max(0.375rem, env(safe-area-inset-bottom))" }}
       >
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-5">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href)
             return (

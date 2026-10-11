@@ -252,6 +252,24 @@ Le Sprint 2 a complété l'interface utilisateur web d'EduFlow avec un design pr
   - `eslint` : **0 avertissement, 0 erreur**
   - `next build --webpack` : **0 erreur** (12 routes compilées avec succès)
 
-
-
-
+### ✅ Module 4 : Assistant Pédagogique Intelligent en Streaming (Chat IA RAG) (Validé)
+- **Service IA :** [`lib/gemini/chat.ts`](file:///lib/gemini/chat.ts)
+  - Modèle : `gemini-3.8-flash` via le SDK `@google/genai` (méthode `generateContentStream`).
+  - Rôle pédagogique d'élite (explications pas-à-pas, formules mathématiques en syntaxe KaTeX `$inline$` et `$$display$$`, tableaux comparatifs, blocs de code annotés).
+  - Résilience aux pics d'affluence : retry exponentiel automatique sur erreurs transitoires (503/429).
+- **Routes API Implémentées :**
+  - `POST /api/ai/chat` : streaming natif Next.js `ReadableStream` avec encodage UTF-8 textuel et persistance asynchrone des messages dans la table Supabase `chat_messages`.
+  - `GET /api/ai/chat` : récupération chronologique des messages de l'utilisateur avec pagination (50 derniers messages).
+  - `DELETE /api/ai/chat` : réinitialisation sécurisée de l'historique conversationnel de l'utilisateur.
+- **Frontend Connecté :**
+  - [`components/chat/markdown-renderer.tsx`](file:///components/chat/markdown-renderer.tsx) : rendu ReactMarkdown enrichi de `remark-math`, `rehype-katex`, coloration des blocs de code avec bouton de copie et tableaux formatés.
+  - [`hooks/use-ai-chat.ts`](file:///hooks/use-ai-chat.ts) : hook client gérant le streaming chunk par chunk via `TextDecoder`, l'état optimiste de l'UI, l'annulation de requête (`AbortController`) et le rechargement de l'historique.
+  - [`app/assistant/page.tsx`](file:///app/assistant/page.tsx) : interface conversationnelle complète avec suggestions de questions, bulles de discussion, défilement automatique doux et boutons de suppression d'historique.
+  - [`components/layout/app-shell.tsx`](file:///components/layout/app-shell.tsx) : ajout du lien "Assistant IA" (`/assistant`) dans la barre latérale desktop et dans la barre de navigation mobile.
+- **Test d'Intégration Réel :**
+  - Requête soumise : explication du tri rapide (QuickSort) avec complexité en KaTeX et exemple en Python.
+  - Résultat : **4 309 caractères streamés sans interruption**, formule $T(n) = 2T(n/2) + O(n)$ rendue proprement par KaTeX, tableau de complexités ($O(n \log n)$ vs $O(n^2)$) et code Python validé.
+- **Vérifications :**
+  - `tsc --noEmit` : **0 erreur**
+  - `eslint` : **0 avertissement, 0 erreur**
+  - `next build --webpack` : **0 erreur** (14 routes compilées avec succès)
