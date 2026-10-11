@@ -26,6 +26,7 @@ import { useProfile } from "@/hooks/use-profile"
 import {
   useSchedule,
   useTodayPlanning,
+  useRegeneratePlanning,
   useUpcomingExams,
   dayOfWeekFromDate,
   DAYS,
@@ -54,6 +55,7 @@ export default function DashboardPage() {
   const { data: profile, isLoading: isProfileLoading } = useProfile()
   const { data: schedule, isLoading: isScheduleLoading } = useSchedule()
   const { data: planning, isLoading: isPlanningLoading } = useTodayPlanning(todayKey)
+  const regeneratePlanningMutation = useRegeneratePlanning()
   const { data: exams, isLoading: isExamsLoading } = useUpcomingExams()
 
   // Pomodoro quick controls
@@ -270,6 +272,23 @@ export default function DashboardPage() {
                   Créneaux d&apos;étude optimisés selon tes cours et tes examens
                 </CardDescription>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => regeneratePlanningMutation.mutate(todayKey)}
+                disabled={regeneratePlanningMutation.isPending || isPlanningLoading}
+                className="gap-1.5 text-xs rounded-xl"
+                title="Régénérer le planning avec Gemini"
+              >
+                <RotateCcw
+                  className={`size-3.5 ${
+                    regeneratePlanningMutation.isPending ? "animate-spin" : ""
+                  }`}
+                />
+                <span className="hidden sm:inline">
+                  {regeneratePlanningMutation.isPending ? "Génération..." : "Régénérer"}
+                </span>
+              </Button>
             </CardHeader>
             <CardContent>
               {isPlanningLoading ? (

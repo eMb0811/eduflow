@@ -4,13 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { DayOfWeek, ScheduleEntry } from "@/types/database"
 import type { GeneratePlanningResponse, ParseScheduleResponse } from "@/types/api"
-import { apiFetch, ApiError, mockDelay } from "@/hooks/api-client"
-import {
-  USE_MOCKS,
-  mockRevisionSlots,
-  mockUpcomingExams,
-  type UpcomingExam,
-} from "@/lib/mocks"
+import { apiFetch, type ApiError } from "@/hooks/api-client"
+import type { UpcomingExam } from "@/lib/mocks"
 
 export const DAYS: { key: DayOfWeek; label: string; short: string }[] = [
   { key: "monday", label: "Lundi", short: "Lun" },
@@ -58,26 +53,47 @@ export function useParseSchedule() {
   })
 }
 
-/** POST /api/schedule/generate-planning (not implemented yet → mock). */
+/** POST /api/schedule/generate-planning — génère le planning de révision IA pour la journée. */
 export function useTodayPlanning(day: DayOfWeek) {
   return useQuery<GeneratePlanningResponse, ApiError>({
     queryKey: ["planning", day],
     queryFn: () =>
-      USE_MOCKS
-        ? mockDelay({ slots: mockRevisionSlots(day) })
-        : apiFetch<GeneratePlanningResponse>("/api/schedule/generate-planning", {
-            method: "POST",
-            body: JSON.stringify({ day_of_week: day }),
-          }),
+      apiFetch<GeneratePlanningResponse>("/api/schedule/generate-planning", {
+        method: "POST",
+        body: JSON.stringify({ day_of_week: day }),
+      }),
   })
 }
 
-/** GET /api/exams (not implemented yet → mock). */
+/** Mutation pour régénérer le planning de révision via Gemini. */
+export function useRegeneratePlanning() {
+  const queryClient = useQueryClient()
+  return useMutation<GeneratePlanningResponse, ApiError, DayOfWeek>({
+    mutationFn: (day) =>
+      apiFetch<GeneratePlanningResponse>("/api/schedule/generate-planning", {
+        method: "POST",
+        body: JSON.stringify({ day_of_week: day }),
+      }),
+    onSuccess: (data, day) => {
+      queryClient.setQueryData(["planning", day], data)
+      void queryClient.invalidateQueries({ queryKey: ["planning"] })
+      toast.success("Planning régénéré avec succès", {
+        description: `${data.slots.length} créneaux optimisés par Gemini.`,
+      })
+    },
+    onError: (error) => {
+      toast.error("Impossible de régénérer le planning", {
+        description: error.message,
+      })
+    },
+  })
+}
+
+/** GET /api/exams — liste des prochains examens. */
 export function useUpcomingExams() {
   return useQuery<UpcomingExam[], ApiError>({
     queryKey: ["exams", "upcoming"],
-    queryFn: () =>
-      USE_MOCKS ? mockDelay(mockUpcomingExams()) : apiFetch<UpcomingExam[]>("/api/exams?upcoming=true"),
+    queryFn: () => apiFetch<UpcomingExam[]>("/api/exams?upcoming=true"),
   })
 }
 

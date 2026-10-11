@@ -233,5 +233,25 @@ Le Sprint 2 a complété l'interface utilisateur web d'EduFlow avec un design pr
   - Buckets de stockage privés `schedules` et `documents` créés avec politiques d'isolation par utilisateur (`{user_id}/*`).
 - **Configuration :** Variables d'environnement réelles renseignées dans [`.env.local`](file:///.env.local), connexion testée et confirmée.
 
+### ✅ Module 3 : Génération de Planning Intelligent de Révision par Gemini (Validé)
+- **Service IA :** [`lib/gemini/generate-planning.ts`](file:///lib/gemini/generate-planning.ts)
+  - Modèle : `gemini-3.8-flash`.
+  - Algorithme de croisement cognitif : croise l'emploi du temps (interdiction formelle de chevaucher les cours en présentiel), les examens imminents (priorisation des matières critiques) et le profil étudiant (objectifs académiques).
+  - Validation Zod stricte (`generatePlanningResponseSchema`) avec retry exponentiel (503/429) et retry prompt si JSON invalide.
+- **Routes API Implémentées :**
+  - `POST /api/schedule/generate-planning` : génère un planning personnalisé pour le jour demandé ou le jour courant.
+  - `GET /api/exams` : récupération des examens à venir de l'étudiant avec calcul du compte à rebours.
+- **Frontend Connecté :**
+  - [`hooks/use-schedule.ts`](file:///hooks/use-schedule.ts) : `useTodayPlanning()`, `useUpcomingExams()` et la nouvelle mutation `useRegeneratePlanning()` branchés directement sur les endpoints réels (mocks supprimés).
+  - [`app/page.tsx`](file:///app/page.tsx) : ajout du bouton d'action "Régénérer" avec indicateur de chargement rotatif dans la carte du Dashboard.
+- **Test d'Intégration Réel :**
+  - Scénario testé : étudiant avec 3 cours (08:00-10:00, 10:15-12:15, 14:00-16:00) et un partiel imminent en Algorithmique.
+  - Résultat : **7 créneaux générés à partir de 16:30** (zéro chevauchement de cours), focus doublé sur l'Algorithmique, pauses structurées et conseils d'efficacité cognitive (Ebbinghaus, effet de test).
+- **Vérifications :**
+  - `tsc --noEmit` : **0 erreur**
+  - `eslint` : **0 avertissement, 0 erreur**
+  - `next build --webpack` : **0 erreur** (12 routes compilées avec succès)
+
+
 
 
