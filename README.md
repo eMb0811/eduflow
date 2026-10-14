@@ -36,8 +36,8 @@
 ### 1. Installation en une commande
 
 ```bash
-git clone https://github.com/votre-compte/eduflow-antigravity.git
-cd eduflow-antigravity
+git clone https://github.com/eMb0811/eduflow.git
+cd eduflow
 npm install
 ```
 
