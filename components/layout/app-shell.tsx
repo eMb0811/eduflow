@@ -148,7 +148,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {children}
 
             <footer className="border-t border-border pt-6 pb-4 text-xs text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p>© {new Date().getFullYear()} EduFlow. Tous droits réservés.</p>
+              <p>© 2026 EduFlow. Tous droits réservés.</p>
               <div className="flex items-center gap-4">
                 <Link href="/cgu" className="hover:text-foreground transition-colors">
                   Conditions Générales d&apos;Utilisation

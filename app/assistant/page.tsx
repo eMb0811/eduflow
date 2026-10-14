@@ -226,6 +226,9 @@ export default function AssistantPage() {
             className="flex items-end gap-2.5"
           >
             <textarea
+              id="chat-input"
+              name="message"
+              aria-label="Votre question pour l'assistant d'études"
               ref={textareaRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}

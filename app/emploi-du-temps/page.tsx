@@ -315,7 +315,7 @@ export default function EmploiDuTempsPage() {
                       </div>
                       <CardDescription className="flex items-center gap-1.5 text-xs">
                         <MapPin className="size-3 text-muted-foreground" />
-                        {course.room ? `Salle ${course.room}` : "Salle non assignée"}
+                        {course.room ? (course.room.toLowerCase().startsWith("salle") ? course.room : `Salle ${course.room}`) : "Salle non assignée"}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-0 pl-5">

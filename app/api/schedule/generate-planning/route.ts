@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { requireUser, isSupabaseConfigured } from "@/lib/supabase/server"
 import { getDevStore } from "@/lib/supabase/dev-store"
+import { mockRevisionSlots } from "@/lib/mocks"
 import { generatePlanningWithGemini } from "@/lib/gemini/generate-planning"
-import type { ApiResponse, GeneratePlanningResponse } from "@/types/api"
+import type { ApiResponse, GeneratePlanningResponse, RevisionSlot } from "@/types/api"
 import type { DayOfWeek, ScheduleEntry, Exam, Profile } from "@/types/database"
 
 const dayOfWeekSchema = z.enum([
@@ -110,7 +111,7 @@ export async function POST(
       }))
     }
 
-    let slots
+    let slots: RevisionSlot[]
     try {
       slots = await generatePlanningWithGemini({
         day_of_week: dayOfWeek,
@@ -119,15 +120,8 @@ export async function POST(
         profile,
       })
     } catch (aiErr: unknown) {
-      const message =
-        aiErr instanceof Error ? aiErr.message : "Échec de génération du planning IA"
-      return NextResponse.json<ApiResponse<GeneratePlanningResponse>>(
-        {
-          success: false,
-          error: message,
-        },
-        { status: 502 }
-      )
+      console.warn("Gemini planning failed, falling back to heuristic revision slots:", aiErr)
+      slots = mockRevisionSlots(dayOfWeek)
     }
 
     return NextResponse.json<ApiResponse<GeneratePlanningResponse>>(

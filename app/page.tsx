@@ -245,7 +245,7 @@ export default function DashboardPage() {
                               {item.subject}
                             </h4>
                             <p className="text-xs text-muted-foreground">
-                              {item.room ? `Salle ${item.room}` : "Salle non définie"}
+                              {item.room ? (item.room.toLowerCase().startsWith("salle") ? item.room : `Salle ${item.room}`) : "Salle non définie"}
                             </p>
                           </div>
                         </div>
