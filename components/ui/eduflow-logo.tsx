@@ -14,7 +14,7 @@ export function EduFlowLogo({
   ...props
 }: EduFlowLogoProps) {
   return (
-    <div className={cn("inline-flex items-center gap-2.5", className)}>
+    <div className={cn("inline-flex items-center gap-2.5 select-none", className)}>
       <svg
         width={size}
         height={size}
@@ -27,67 +27,68 @@ export function EduFlowLogo({
         {...props}
       >
         <defs>
-          {/* Main gradient for the fluid 'E' monogram */}
-          <linearGradient id="eduflow-e-gradient" x1="16" y1="12" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+          {/* Main Neon Cyan to Electric Blue Gradient */}
+          <linearGradient id="ef-flow-gradient" x1="10" y1="8" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#00F0FF" />
+            <stop offset="45%" stopColor="#38BDF8" />
+            <stop offset="100%" stopColor="#2563EB" />
+          </linearGradient>
+
+          {/* Glowing Quill Feather Gradient */}
+          <linearGradient id="ef-feather-grad" x1="14" y1="10" x2="36" y2="36" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#38BDF8" />
-            <stop offset="45%" stopColor="#3B82F6" />
-            <stop offset="100%" stopColor="#10B981" />
+            <stop offset="70%" stopColor="#0EA5E9" />
+            <stop offset="100%" stopColor="#1D4ED8" />
           </linearGradient>
 
-          {/* Node circuit gradient */}
-          <linearGradient id="eduflow-node-gradient" x1="6" y1="18" x2="20" y2="30" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#00E5FF" />
-            <stop offset="100%" stopColor="#10B981" />
+          {/* Accent Flow Wave Gradient */}
+          <linearGradient id="ef-wave-grad" x1="8" y1="28" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#00F0FF" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.4" />
           </linearGradient>
 
-          {/* AI spark gradient */}
-          <linearGradient id="eduflow-spark-gradient" x1="36" y1="6" x2="42" y2="12" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#67E8F9" />
-            <stop offset="100%" stopColor="#38BDF8" />
-          </linearGradient>
-
-          <filter id="eduflow-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#38BDF8" floodOpacity="0.35" />
+          {/* Subtle Ambient Drop Glow */}
+          <filter id="ef-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#00F0FF" floodOpacity="0.3" />
           </filter>
         </defs>
 
-        {/* Neural Network Branches & Terminal Nodes */}
-        {/* Upper branch */}
-        <line x1="11" y1="18" x2="19" y2="24" stroke="url(#eduflow-node-gradient)" strokeWidth="2.2" strokeLinecap="round" />
-        <circle cx="11" cy="18" r="2.4" fill="#0B0F17" stroke="#38BDF8" strokeWidth="2" />
-
-        {/* Lower branch */}
-        <line x1="11" y1="30" x2="19" y2="24" stroke="url(#eduflow-node-gradient)" strokeWidth="2.2" strokeLinecap="round" />
-        <circle cx="11" cy="30" r="2.4" fill="#0B0F17" stroke="#10B981" strokeWidth="2" />
-
-        {/* Central Interconnect Hub Node */}
-        <circle cx="19" cy="24" r="3.2" fill="#0B0F17" stroke="#38BDF8" strokeWidth="2.2" />
-
-        {/* Fluid Monogram 'E' */}
-        {/* Top arm with aerodynamic curvature */}
+        {/* Dynamic Learning Flow Wave Ribbon (Wrap at base) */}
         <path
-          d="M 19 16 C 22 13 28 13 34 13.5 C 34.8 13.6 35.2 14.6 34.5 15.2 C 32 17 28 19 22 19 L 20 19"
-          fill="url(#eduflow-e-gradient)"
-        />
-        {/* Backbone arc of 'E' flowing downwards */}
-        <path
-          d="M 21 16 C 17 20 17 28 21 32 C 24 35 28 35.5 34 35.5 C 34.8 35.5 35.2 34.4 34.4 33.9 C 31 31.8 27 30 23 29 C 21 28 20 26 21 24"
-          fill="url(#eduflow-e-gradient)"
-        />
-        {/* Center crossbar with forward flow */}
-        <path
-          d="M 19 23 L 30 23 C 31.2 23 31.8 24.5 30.8 25.2 C 28 26.8 24 27 19 25 Z"
-          fill="url(#eduflow-e-gradient)"
+          d="M 9 34 C 8 28 12 23 18 20 C 18.8 19.5 19.5 20.5 19 21.2 C 15 26 13 30 16 34 C 18.5 37.5 24 38 32 36.5 C 33.2 36.3 33.6 37.8 32.5 38.3 C 23 42 12 41 9 34 Z"
+          fill="url(#ef-wave-grad)"
         />
 
-        {/* AI Spark Star at Top Right */}
+        {/* Monogram 'E' Feather Spine (Quill Shaft) */}
         <path
-          d="M 38 7 C 38.3 9.2 39.8 10.7 42 11 C 39.8 11.3 38.3 12.8 38 15 C 37.7 12.8 36.2 11.3 34 11 C 36.2 10.7 37.7 9.2 38 7 Z"
-          fill="url(#eduflow-spark-gradient)"
-          filter="url(#eduflow-glow)"
+          d="M 16 38 C 17 31 20 22 28 13 C 29 11.8 31 10.5 33 9.5 C 33.8 9.1 34.6 9.8 34.2 10.6 C 30 18 25 27 20 37 C 19.4 38.2 17.2 38.5 16 38 Z"
+          fill="url(#ef-flow-gradient)"
         />
-        {/* Micro spark dot */}
-        <circle cx="34.5" cy="14.5" r="0.8" fill="#67E8F9" />
+
+        {/* Top Arm of 'E' - Aerodynamic Quill Tip */}
+        <path
+          d="M 23 11 C 28 9.5 35 9 39 10 C 39.8 10.2 40.1 11.2 39.4 11.7 C 35 14.5 30 17 25 18 C 24 18.2 23.4 17.2 23.8 16.3 C 24.5 14.5 24.2 12.5 23 11 Z"
+          fill="url(#ef-feather-grad)"
+          filter="url(#ef-glow)"
+        />
+
+        {/* Middle Crossbar of 'E' - Forward Momentum Vane */}
+        <path
+          d="M 20 21 C 24 20.5 30 20 34 21 C 34.8 21.2 35.1 22.2 34.3 22.7 C 30 25.5 25 27.5 21 28 C 19.8 28.1 19.5 26.8 20.2 26 C 21 24.8 21 23 20 21 Z"
+          fill="url(#ef-feather-grad)"
+        />
+
+        {/* Bottom Arm of 'E' - Grounded Horizon Vane */}
+        <path
+          d="M 18 31 C 23 30.5 28 30 33 30.8 C 34 31 34.2 32.2 33.3 32.7 C 28 35.5 22 36.8 17 36 C 16.2 35.8 16.5 34.5 17.3 34.2 C 18.5 33.8 18.8 32.2 18 31 Z"
+          fill="url(#ef-feather-grad)"
+        />
+
+        {/* Floating AI Sparkle above Quill Tip */}
+        <path
+          d="M 40 6 C 40.2 7.5 41.5 8.8 43 9 C 41.5 9.2 40.2 10.5 40 12 C 39.8 10.5 38.5 9.2 37 9 C 38.5 8.8 39.8 7.5 40 6 Z"
+          fill="#00F0FF"
+        />
       </svg>
 
       {showText && (

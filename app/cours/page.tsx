@@ -277,48 +277,48 @@ export default function CoursPage() {
           </div>
 
           {/* Quick AI Action triggers */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleGenerateSummary}
               disabled={isSummarizing}
-              className="gap-1.5 text-xs h-9 border-primary/30 hover:bg-primary/10"
+              className="gap-2 text-xs font-medium border-primary/30 hover:bg-primary/10 rounded-xl px-4 py-2"
             >
               {isSummarizing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
               ) : (
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <Sparkles className="h-4 w-4 text-primary" />
               )}
               {activeSummary ? "Régénérer synthèse" : "Générer synthèse"}
             </Button>
 
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleGenerateFlashcards}
               disabled={isGeneratingFlashcards}
-              className="gap-1.5 text-xs h-9 border-indigo-500/30 hover:bg-indigo-500/10"
+              className="gap-2 text-xs font-medium border-indigo-500/30 hover:bg-indigo-500/10 rounded-xl px-4 py-2"
             >
               {isGeneratingFlashcards ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
               ) : (
-                <Layers className="h-3.5 w-3.5 text-indigo-400" />
+                <Layers className="h-4 w-4 text-indigo-400" />
               )}
               {activeDeck ? "Régénérer cartes" : "Générer flashcards"}
             </Button>
 
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleGenerateQuiz}
               disabled={isGeneratingQuiz}
-              className="gap-1.5 text-xs h-9 border-emerald-500/30 hover:bg-emerald-500/10"
+              className="gap-2 text-xs font-medium border-emerald-500/30 hover:bg-emerald-500/10 rounded-xl px-4 py-2"
             >
               {isGeneratingQuiz ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
               ) : (
-                <HelpCircle className="h-3.5 w-3.5 text-emerald-400" />
+                <HelpCircle className="h-4 w-4 text-emerald-400" />
               )}
               {activeQuiz ? "Régénérer quiz" : "Générer quiz"}
             </Button>

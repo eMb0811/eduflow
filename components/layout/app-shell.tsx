@@ -15,7 +15,6 @@ import {
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { useProfile } from "@/hooks/use-profile"
-
 import { EduFlowLogo } from "@/components/ui/eduflow-logo"
 
 interface NavItem {
@@ -28,7 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/emploi-du-temps", label: "Emploi du temps", icon: CalendarDays },
   { href: "/cours", label: "Cours & Quiz", icon: BookOpen },
-  { href: "/assistant", label: "Assistant", icon: Sparkles },
+  { href: "/assistant", label: "Assistant IA", icon: Sparkles },
   { href: "/pomodoro", label: "Pomodoro", icon: Timer },
   { href: "/profil", label: "Profil", icon: UserRound },
 ]
@@ -44,34 +43,21 @@ function Logo() {
       className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-sidebar-accent/60"
       aria-label="EduFlow, retour au tableau de bord"
     >
-      <EduFlowLogo size={34} showText />
+      <EduFlowLogo size={32} showText />
     </Link>
   )
 }
 
-function UserChip() {
-  const { data: profile } = useProfile()
-  const name = profile?.full_name ?? "Invité"
-  const initials = name
-    .split(" ")
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
-
+function CompactLogo() {
   return (
     <Link
-      href="/profil"
-      className="flex items-center gap-2.5 rounded-md p-1.5 transition-colors hover:bg-sidebar-accent"
+      href="/"
+      className="group relative flex size-11 items-center justify-center rounded-xl transition-all hover:bg-sidebar-accent/60"
+      aria-label="EduFlow, retour au tableau de bord"
     >
-      <span className="grid size-8 shrink-0 place-items-center rounded-md bg-secondary text-xs font-semibold text-secondary-foreground border border-border">
-        {initials || "?"}
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-xs font-medium text-foreground">{name}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">
-          {profile?.field_of_study ?? "Profil"}
-        </span>
+      <EduFlowLogo size={32} showText={false} />
+      <span className="pointer-events-none absolute left-full ml-3 hidden rounded-md border border-border bg-popover px-2.5 py-1 text-xs font-semibold text-popover-foreground shadow-md group-hover:flex whitespace-nowrap z-50">
+        EduFlow
       </span>
     </Link>
   )
@@ -79,6 +65,14 @@ function UserChip() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { data: profile } = useProfile()
+  const name = profile?.full_name ?? "Fatou Ndiaye"
+  const initials = name
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase()
 
   return (
     <div className="relative flex min-h-dvh w-full bg-background">
@@ -89,10 +83,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Aller au contenu
       </a>
 
-      {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4 md:flex">
-        <Logo />
-        <nav aria-label="Navigation principale" className="mt-6 flex flex-1 flex-col gap-1">
+      {/* Desktop Compact Sidebar Rail (68px) */}
+      <aside className="sticky top-0 hidden h-dvh w-[68px] shrink-0 flex-col items-center border-r border-sidebar-border bg-sidebar py-4 px-2 md:flex">
+        <CompactLogo />
+
+        <nav aria-label="Navigation principale" className="mt-6 flex flex-1 flex-col items-center gap-2.5">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href)
             return (
@@ -101,37 +96,45 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "group relative flex size-11 items-center justify-center rounded-xl transition-all",
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                    ? "bg-primary/15 text-primary shadow-xs ring-1 ring-primary/30"
+                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                 )}
+                aria-label={label}
               >
-                <Icon className="size-4 shrink-0" aria-hidden />
-                {label}
+                {active && (
+                  <span className="absolute left-[-8px] h-5 w-1 rounded-r-full bg-primary" />
+                )}
+                <Icon className="size-5 shrink-0" aria-hidden />
+
+                {/* Floating tooltip on hover */}
+                <span className="pointer-events-none absolute left-full ml-3 hidden rounded-md border border-border bg-popover px-2.5 py-1 text-xs font-medium text-popover-foreground shadow-md group-hover:flex whitespace-nowrap z-50">
+                  {label}
+                </span>
               </Link>
             )
           })}
         </nav>
 
-        <div className="space-y-3 border-t border-sidebar-border pt-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <UserChip />
-            </div>
-            <ThemeToggle id="theme-toggle-desktop" />
-          </div>
+        {/* Bottom Rail Actions */}
+        <div className="flex flex-col items-center gap-3 border-t border-sidebar-border/80 pt-4 w-full">
+          <ThemeToggle id="theme-toggle-desktop" />
 
-          <div className="flex items-center justify-between px-1 text-[11px] text-muted-foreground">
-            <Link href="/cgu" className="hover:underline">CGU</Link>
-            <span>•</span>
-            <Link href="/confidentialite" className="hover:underline">Confidentialité</Link>
-            <span>•</span>
-            <span>v1.0</span>
-          </div>
+          <Link
+            href="/profil"
+            className="group relative flex size-10 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground border border-border transition-all hover:border-primary/50 hover:shadow-xs"
+            aria-label={`Profil de ${name}`}
+          >
+            {initials || "?"}
+            <span className="pointer-events-none absolute left-full ml-3 hidden rounded-md border border-border bg-popover px-2.5 py-1 text-xs font-medium text-popover-foreground shadow-md group-hover:flex whitespace-nowrap z-50">
+              {name} • Profil
+            </span>
+          </Link>
         </div>
       </aside>
 
+      {/* Main Page Area */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-background px-4 py-3 md:hidden">

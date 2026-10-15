@@ -63,10 +63,10 @@ export default function PomodoroPage() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [status, start, pause])
 
-  const modes: { key: PomodoroType; label: string; icon: typeof Flame }[] = [
-    { key: "work", label: "Concentration", icon: Flame },
-    { key: "short_break", label: "Pause courte", icon: Coffee },
-    { key: "long_break", label: "Pause longue", icon: Sparkles },
+  const modes: { key: PomodoroType; label: string; duration: string; icon: typeof Flame }[] = [
+    { key: "work", label: "Concentration", duration: "25m", icon: Flame },
+    { key: "short_break", label: "Pause courte", duration: "5m", icon: Coffee },
+    { key: "long_break", label: "Pause longue", duration: "15m", icon: Sparkles },
   ]
 
   // Calculate current cycle progress (1 to 4)
@@ -89,7 +89,7 @@ export default function PomodoroPage() {
           variant="outline"
           size="sm"
           onClick={() => setSoundEnabled(!soundEnabled)}
-          className="rounded-xl gap-2 self-start sm:self-auto"
+          className="rounded-xl gap-2 self-start sm:self-auto px-3.5 py-1.5"
         >
           {soundEnabled ? (
             <>
@@ -104,31 +104,41 @@ export default function PomodoroPage() {
       </div>
 
       {/* Main Timer Display Card */}
-      <Card className="overflow-hidden rounded-xl border border-border bg-card p-6 shadow-xs sm:p-8">
-        {/* Mode Selector Tabs */}
-        <div className="mx-auto flex max-w-md items-center justify-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
-          {modes.map(({ key, label, icon: Icon }) => {
+      <Card className="overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-10">
+        {/* Ergonomic Mode Selector Tabs */}
+        <div className="mx-auto flex max-w-xl items-center justify-center gap-1.5 rounded-xl border border-border/80 bg-muted/40 p-1.5 shadow-inner">
+          {modes.map(({ key, label, duration, icon: Icon }) => {
             const isActive = mode === key
             return (
               <button
                 key={key}
+                type="button"
                 onClick={() => switchMode(key)}
-                className={`relative flex flex-1 items-center justify-center gap-2 rounded-md py-1.5 text-xs font-medium transition-all sm:text-sm ${
+                className={`relative flex flex-1 items-center justify-center gap-2 rounded-lg px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-all select-none ${
                   isActive
                     ? "text-primary-foreground font-semibold shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="pomodoro-mode-active"
-                    className="absolute inset-0 rounded-md bg-primary"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute inset-0 rounded-lg bg-primary"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
                   />
                 )}
-                <span className="relative z-10 flex items-center gap-1.5">
-                  <Icon className="size-3.5" />
-                  {label}
+                <span className="relative z-10 flex items-center gap-2">
+                  <Icon className="size-4 shrink-0" />
+                  <span>{label}</span>
+                  <span
+                    className={`inline-block rounded-md px-1.5 py-0.5 text-[10px] sm:text-[11px] font-mono font-semibold transition-colors ${
+                      isActive
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-muted-foreground/15 text-muted-foreground"
+                    }`}
+                  >
+                    {duration}
+                  </span>
                 </span>
               </button>
             )

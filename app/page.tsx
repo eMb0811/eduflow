@@ -105,13 +105,13 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <Button asChild variant="outline" size="sm" className="rounded-lg border-border/80">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Button asChild variant="outline" size="default" className="rounded-xl border-border/80">
               <Link href="/emploi-du-temps">
                 <CalendarDays className="size-4" /> Emploi du temps
               </Link>
             </Button>
-            <Button asChild size="sm" className="rounded-lg shadow-sm">
+            <Button asChild size="default" className="rounded-xl shadow-xs">
               <Link href="/pomodoro">
                 <Timer className="size-4" /> Minuteur Focus
               </Link>
@@ -120,31 +120,31 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Gemini Study Prompts Pill Bar */}
-        <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center gap-2 text-xs">
+        <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center gap-2.5 text-xs">
           <span className="font-medium text-muted-foreground flex items-center gap-1.5 mr-1">
             <Sparkles className="size-3.5 text-primary" /> Actions rapides IA :
           </span>
           <Link
             href="/assistant?q=Peux-tu+me+faire+une+synthèse+express+de+mon+cours+de+la+journée+%3F"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3.5 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
           >
             ⚡ Résumer le cours du jour
           </Link>
           <Link
             href="/cours"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3.5 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
           >
             ✨ Réviser mes flashcards
           </Link>
           <Link
             href="/cours"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3.5 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
           >
             🎯 Simuler un quiz express
           </Link>
           <Link
             href="/pomodoro"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3.5 py-1.5 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
           >
             ⏱️ Session Pomodoro (25 min)
           </Link>
