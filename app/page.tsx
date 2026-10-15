@@ -16,6 +16,7 @@ import {
   Play,
   Pause,
   RotateCcw,
+  Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -81,13 +82,16 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Hero Banner */}
-      <div className="overflow-hidden rounded-xl border border-border bg-card p-6 shadow-xs">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground">
-                <CalendarDays className="size-3.5 text-primary" /> Année académique
+      {/* Welcome Hero Banner with AI Cognitive Status & Streak */}
+      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-r from-card via-card to-card/60 p-6 shadow-xs backdrop-blur-md">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3 py-0.5 text-xs font-medium text-foreground">
+                <CalendarDays className="size-3.5 text-primary" /> Année académique 2025-2026
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-500">
+                <Flame className="size-3.5 text-amber-500 fill-amber-500" /> 12 j consécutifs
               </span>
               <span className="capitalize text-xs text-muted-foreground">{formattedDate}</span>
             </div>
@@ -95,34 +99,65 @@ export default function DashboardPage() {
               {isProfileLoading ? (
                 <Skeleton className="h-9 w-64" />
               ) : (
-                <>Bonjour {studentName}</>
+                <>Bonjour {studentName} 👋</>
               )}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground max-w-xl">
               {profile?.field_of_study
-                ? `${profile.field_of_study} • Emploi du temps et sessions de travail du jour`
-                : "Organisation des cours, planning d'étude et suivi des examens."}
+                ? `${profile.field_of_study} • Programme d'optimisation cognitive et sessions d'étude du jour.`
+                : "Organisation des cours, planning d'étude adaptatif et suivi des examens par IA."}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <Button asChild variant="outline" size="sm" className="rounded-md">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Button asChild variant="outline" size="sm" className="rounded-lg border-border/80">
               <Link href="/emploi-du-temps">
                 <CalendarDays className="size-4" /> Emploi du temps
               </Link>
             </Button>
-            <Button asChild size="sm" className="rounded-md">
+            <Button asChild size="sm" className="rounded-lg shadow-sm">
               <Link href="/pomodoro">
-                <Timer className="size-4" /> Minuteur de travail
+                <Timer className="size-4" /> Minuteur Focus
               </Link>
             </Button>
           </div>
+        </div>
+
+        {/* Quick Gemini Study Prompts Pill Bar */}
+        <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-medium text-muted-foreground flex items-center gap-1.5 mr-1">
+            <Sparkles className="size-3.5 text-primary" /> Actions rapides IA :
+          </span>
+          <Link
+            href="/assistant?q=Peux-tu+me+faire+une+synthèse+express+de+mon+cours+de+la+journée+%3F"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+          >
+            ⚡ Résumer le cours du jour
+          </Link>
+          <Link
+            href="/cours"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+          >
+            ✨ Réviser mes flashcards
+          </Link>
+          <Link
+            href="/cours"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+          >
+            🎯 Simuler un quiz express
+          </Link>
+          <Link
+            href="/pomodoro"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-secondary/50 px-3 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/50 hover:bg-secondary hover:text-primary"
+          >
+            ⏱️ Session Pomodoro (25 min)
+          </Link>
         </div>
       </div>
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <Card className="rounded-2xl border-border/70 bg-card/60 backdrop-blur-lg">
+        <Card className="card-interactive rounded-2xl border-border/80 bg-card/75 backdrop-blur-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Étude cette semaine</CardTitle>
             <Clock className="size-4 text-primary" />
@@ -141,7 +176,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/70 bg-card/60 backdrop-blur-lg">
+        <Card className="card-interactive rounded-2xl border-border/80 bg-card/75 backdrop-blur-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Cours du jour ({dayLabel})</CardTitle>
             <BookOpen className="size-4 text-brand-2" />
@@ -156,7 +191,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/70 bg-card/60 backdrop-blur-lg">
+        <Card className="card-interactive rounded-2xl border-border/80 bg-card/75 backdrop-blur-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Examens proches</CardTitle>
             <CalendarCheck2 className="size-4 text-chart-4" />
@@ -171,7 +206,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-border/70 bg-card/60 backdrop-blur-lg">
+        <Card className="card-interactive rounded-2xl border-border/80 bg-card/75 backdrop-blur-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">Objectif profil</CardTitle>
             <CheckCircle2 className="size-4 text-success" />

@@ -177,7 +177,7 @@ export default function AssistantPage() {
                       className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
                     >
                       {!isUser && (
-                        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-primary to-indigo-500 text-white shadow-sm shadow-primary/20 mt-1">
+                        <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-primary to-emerald-500 text-white shadow-sm shadow-primary/20 mt-1">
                           <Sparkles className="size-4" />
                         </span>
                       )}

@@ -1,15 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   RotateCcw,
   CheckCircle2,
-  HelpCircle,
   ChevronLeft,
   ChevronRight,
   Shuffle,
-  Sparkles,
   Layers,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -33,6 +31,29 @@ export function FlashcardDeck({
   const [isFlipped, setIsFlipped] = useState(false)
   const [knownCardIds, setKnownCardIds] = useState<Set<string>>(new Set())
   const [reviewCardIds, setReviewCardIds] = useState<Set<string>>(new Set())
+
+  // Keyboard navigation shortcuts (Space to flip, Left/Right arrows to navigate)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+      if (e.code === "Space") {
+        e.preventDefault()
+        setIsFlipped((prev) => !prev)
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault()
+        setIsFlipped(false)
+        setCurrentIndex((prev) => (prev < deck.length - 1 ? prev + 1 : prev))
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault()
+        setIsFlipped(false)
+        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev))
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [deck.length])
 
   if (!deck || deck.length === 0) {
     return (
@@ -137,7 +158,7 @@ export function FlashcardDeck({
       {/* Progress bar */}
       <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full"
+          className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${progressPercent}%` }}
           transition={{ duration: 0.3 }}
@@ -150,24 +171,24 @@ export function FlashcardDeck({
         onClick={() => setIsFlipped((prev) => !prev)}
       >
         <motion.div
-          className="relative w-full h-full rounded-2xl p-6 sm:p-8 flex flex-col justify-between border shadow-lg transition-shadow duration-300 hover:shadow-xl bg-card"
+          className="relative w-full h-full rounded-2xl p-6 sm:p-8 flex flex-col justify-between border border-border/80 shadow-lg transition-all duration-300 hover:border-primary/40 hover:shadow-xl bg-card"
           animate={{ rotateY: isFlipped ? 180 : 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           style={{ transformStyle: "preserve-3d" }}
         >
           {/* FRONT */}
           <div
-            className={`absolute inset-0 p-6 sm:p-8 flex flex-col justify-between rounded-2xl bg-gradient-to-br from-card to-secondary/30 backface-hidden ${
+            className={`absolute inset-0 p-6 sm:p-8 flex flex-col justify-between rounded-2xl bg-gradient-to-br from-card via-card to-secondary/30 backface-hidden ${
               isFlipped ? "pointer-events-none" : ""
             }`}
           >
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-medium">
                 {currentCard.category || "Question"}
               </Badge>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <HelpCircle className="h-3.5 w-3.5 text-primary" />
-                Cliquez pour révéler
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <kbd className="hidden sm:inline-block rounded border border-border bg-muted/70 px-1.5 py-0.5 font-mono text-[10px]">Espace</kbd>
+                <span>Cliquer pour révéler</span>
               </span>
             </div>
 
@@ -178,25 +199,25 @@ export function FlashcardDeck({
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground/80 pt-3 border-t border-border/50">
-              <span>Mémorisation active</span>
+              <span>Mémorisation active SRS</span>
               <span className="text-primary font-medium">Recto ↺</span>
             </div>
           </div>
 
           {/* BACK */}
           <div
-            className={`absolute inset-0 p-6 sm:p-8 flex flex-col justify-between rounded-2xl bg-gradient-to-br from-indigo-950/20 via-card to-card border-indigo-500/20 backface-hidden ${
+            className={`absolute inset-0 p-6 sm:p-8 flex flex-col justify-between rounded-2xl bg-gradient-to-br from-primary/10 via-card to-card border-primary/20 backface-hidden ${
               !isFlipped ? "pointer-events-none" : ""
             }`}
             style={{ transform: "rotateY(180deg)" }}
           >
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs">
-                Réponse
+              <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-xs font-medium">
+                Réponse validée
               </Badge>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                Verso
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <kbd className="hidden sm:inline-block rounded border border-border bg-muted/70 px-1.5 py-0.5 font-mono text-[10px]">Espace</kbd>
+                <span>Verso</span>
               </span>
             </div>
 

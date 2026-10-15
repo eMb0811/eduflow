@@ -6,7 +6,6 @@ import { motion } from "framer-motion"
 import {
   BookOpen,
   CalendarDays,
-  GraduationCap,
   LayoutDashboard,
   Sparkles,
   Timer,
@@ -16,6 +15,8 @@ import {
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { useProfile } from "@/hooks/use-profile"
+
+import { EduFlowLogo } from "@/components/ui/eduflow-logo"
 
 interface NavItem {
   href: string
@@ -40,15 +41,10 @@ function Logo() {
   return (
     <Link
       href="/"
-      className="flex items-center gap-2.5 rounded-md px-2 py-1"
+      className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-sidebar-accent/60"
       aria-label="EduFlow, retour au tableau de bord"
     >
-      <span className="grid size-8 place-items-center rounded-md bg-primary text-primary-foreground font-semibold">
-        <GraduationCap className="size-4.5" aria-hidden />
-      </span>
-      <span className="font-heading text-lg font-bold tracking-tight text-foreground">
-        EduFlow
-      </span>
+      <EduFlowLogo size={34} showText />
     </Link>
   )
 }
