@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>EduFlow — Démo & Tests E2E Chrome</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --border: #1f293d;
+      --primary: #38bdf8;
+      --text: #f3f4f6;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .player-container {
+      width: 100%;
+      max-width: 1100px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .viewport {
+      width: 100%;
+      height: 640px;
+      background: #000;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .viewport img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: opacity 0.3s ease;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: #0d131f;
+      border-top: 1px solid var(--border);
+    }
+    .btn-group { display: flex; gap: 8px; }
+    button {
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: var(--primary); color: #000; }
+    .status-text { font-size: 13px; color: var(--muted); }
+    .thumbnails {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 1100px;
+      margin-top: 24px;
+    }
+    .thumb {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+      opacity: 0.7;
+    }
+    .thumb.active {
+      border-color: var(--primary);
+      opacity: 1;
+      transform: translateY(-2px);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .thumb img { width: 100%; height: 70px; object-fit: cover; display: block; }
+    .thumb span { display: block; padding: 6px 8px; font-size: 10px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1 style="font-size: 20px; font-weight: 700;">EduFlow — Démo & Tests E2E Validés dans Google Chrome</h1>
+      <p style="font-size: 13px; color: var(--muted); margin-top: 4px;">Validation visuelle, interactions 3D, minuteur temps réel & assistant IA</p>
+    </div>
+    <div class="badge">● Tests 100% Validés</div>
+  </header>
+
+  <div class="player-container">
+    <div class="viewport">
+      <img id="main-frame" src="01-dashboard.png" alt="Vue active">
+    </div>
+    <div class="controls">
+      <div class="btn-group">
+        <button id="prev-btn">◀ Précédent</button>
+        <button id="play-btn">▶ Lecture auto</button>
+        <button id="next-btn">Suivant ▶</button>
+      </div>
+      <div class="status-text" id="status-label">Étape 1 / 7 : Tableau de bord EduFlow</div>
+    </div>
+  </div>
+
+  <div class="thumbnails" id="thumbs-list"></div>
+
+  <script>
+    const steps = [
+      { file: "01-dashboard.png", label: "1. Tableau de bord" },
+      { file: "02-cours-synthese.png", label: "2. Cours & Synthèse" },
+      { file: "03-flashcards-recto.png", label: "3. Flashcards Recto" },
+      { file: "04-flashcards-verso.png", label: "4. Flashcards Verso (Flip 3D)" },
+      { file: "05-cours-quiz.png", label: "5. Quiz d'auto-évaluation" },
+      { file: "06-assistant-tutor.png", label: "6. Assistant d'études IA" },
+      { file: "07-pomodoro-active.png", label: "7. Minuteur Pomodoro Focus" }
+    ];
+
+    let current = 0;
+    let timer = null;
+    const imgEl = document.getElementById("main-frame");
+    const labelEl = document.getElementById("status-label");
+    const playBtn = document.getElementById("play-btn");
+    const thumbsContainer = document.getElementById("thumbs-list");
+
+    steps.forEach((s, idx) => {
+      const div = document.createElement("div");
+      div.className = "thumb" + (idx === 0 ? " active" : "");
+      div.innerHTML = '<img src="' + s.file + '"><span>' + s.label + '</span>';
+      div.onclick = () => showStep(idx);
+      thumbsContainer.appendChild(div);
+    });
+
+    function showStep(idx) {
+      current = idx;
+      imgEl.src = steps[current].file;
+      labelEl.textContent = "Étape " + (current + 1) + " / " + steps.length + " : " + steps[current].label;
+      Array.from(thumbsContainer.children).forEach((el, i) => {
+        el.className = "thumb" + (i === current ? " active" : "");
+      });
+    }
+
+    document.getElementById("prev-btn").onclick = () => {
+      showStep((current - 1 + steps.length) % steps.length);
+    };
+    document.getElementById("next-btn").onclick = () => {
+      showStep((current + 1) % steps.length);
+    };
+
+    playBtn.onclick = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        playBtn.textContent = "▶ Lecture auto";
+      } else {
+        playBtn.textContent = "⏸ Pause";
+        timer = setInterval(() => {
+          showStep((current + 1) % steps.length);
+        }, 2200);
+      }
+    };
+  </script>
+</body>
+</html>

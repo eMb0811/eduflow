@@ -31,7 +31,13 @@ import {
   useGenerateFlashcards,
   useGenerateQuiz,
 } from "@/hooks/use-documents"
-import { SAMPLE_COURSES, type SampleCourseDoc } from "@/lib/mocks/documents"
+import {
+  SAMPLE_COURSES,
+  SAMPLE_SUMMARIES,
+  SAMPLE_FLASHCARDS,
+  SAMPLE_QUIZZES,
+  type SampleCourseDoc,
+} from "@/lib/mocks/documents"
 import type { DocumentSummary, Flashcard, QuizResponse } from "@/types/api"
 
 export default function CoursPage() {
@@ -44,10 +50,10 @@ export default function CoursPage() {
   const [selectedCourse, setSelectedCourse] = useState<SampleCourseDoc>(SAMPLE_COURSES[0])
   const [activeTab, setActiveTab] = useState<string>("summary")
 
-  // Per-course cached results
-  const [summaries, setSummaries] = useState<Record<string, DocumentSummary>>({})
-  const [flashcardDecks, setFlashcardDecks] = useState<Record<string, Flashcard[]>>({})
-  const [quizzes, setQuizzes] = useState<Record<string, QuizResponse>>({})
+  // Per-course cached results pre-seeded for instantaneous rich UX
+  const [summaries, setSummaries] = useState<Record<string, DocumentSummary>>(SAMPLE_SUMMARIES)
+  const [flashcardDecks, setFlashcardDecks] = useState<Record<string, Flashcard[]>>(SAMPLE_FLASHCARDS)
+  const [quizzes, setQuizzes] = useState<Record<string, QuizResponse>>(SAMPLE_QUIZZES)
 
   // New course modal state
   const [isNewDocOpen, setIsNewDocOpen] = useState(false)

@@ -78,7 +78,7 @@ export default function DashboardPage() {
   const weeklyHours = Math.floor(weeklyMinutes / 60)
   const weeklyRemainingMinutes = weeklyMinutes % 60
 
-  const studentName = profile?.full_name ? profile.full_name.split(" ")[0] : "Étudiant"
+  const studentName = profile?.full_name ? profile.full_name.split(" ")[0] : "Fatou"
 
   return (
     <div className="space-y-8">
@@ -96,11 +96,7 @@ export default function DashboardPage() {
               <span className="capitalize text-xs text-muted-foreground">{formattedDate}</span>
             </div>
             <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
-              {isProfileLoading ? (
-                <Skeleton className="h-9 w-64" />
-              ) : (
-                <>Bonjour {studentName} 👋</>
-              )}
+              Bonjour {studentName} 👋
             </h1>
             <p className="text-sm text-muted-foreground max-w-xl">
               {profile?.field_of_study

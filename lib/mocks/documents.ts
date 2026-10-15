@@ -1,4 +1,5 @@
 import type { Document } from "@/types/database"
+import type { DocumentSummary, Flashcard, QuizResponse } from "@/types/api"
 
 export interface SampleCourseDoc {
   id: string
@@ -79,3 +80,91 @@ export const mockUserDocuments: Document[] = SAMPLE_COURSES.map((c) => ({
   file_url: `https://example.com/docs/${c.id}.pdf`,
   created_at: new Date().toISOString(),
 }))
+
+export const SAMPLE_SUMMARIES: Record<string, DocumentSummary> = {
+  "doc-sample-1": {
+    title: "Synthèse : Graphes & Plus Courts Chemins",
+    overview:
+      "Étude comparative rigoureuse des algorithmes de Dijkstra, Bellman-Ford et Floyd-Warshall, précisant les hypothèses d'application sur les pondérations et leurs complexités respectives.",
+    key_concepts: [
+      {
+        concept: "Relâchement (Relaxation)",
+        explanation:
+          "Mise à jour conditionnelle d'une distance d[v] vers un sommet si le passage intermédiaire par u est strictement plus court : si d[u] + w(u,v) < d[v], alors d[v] = d[u] + w(u,v).",
+      },
+      {
+        concept: "Cycle Absorbant Négatif",
+        explanation:
+          "Cycle dont le coût cumulé est strictement négatif (< 0). Il rend le problème du plus court chemin indéfini car la distance tend vers l'infini négatif.",
+      },
+      {
+        concept: "Approche Gloutonne de Dijkstra",
+        explanation:
+          "Fixe définitivement la distance minimale du sommet non visité le plus proche. Impératif : requiert des poids strictement positifs (w >= 0).",
+      },
+    ],
+    detailed_summary:
+      "1. Dijkstra résout le problème du plus court chemin à source unique sur graphes sans arêtes négatives en O((|V| + |E|) log |V|) avec tas binaire.\n2. Bellman-Ford gère les pondérations négatives et détecte les cycles absorbants en (|V| - 1) itérations de relâchement en O(|V| * |E|).\n3. Floyd-Warshall calcule les chemins optimaux pour toutes les paires par programmation dynamique en O(|V|³).",
+    key_takeaways: [
+      "Ne JAMAIS utiliser Dijkstra avec des arêtes à poids négatif.",
+      "Bellman-Ford détecte les cycles négatifs à la |V|-ième itération.",
+      "L'usage d'un min-heap optimise Dijkstra de O(|V|²) à O((|V| + |E|) log |V|).",
+    ],
+  },
+}
+
+export const SAMPLE_FLASHCARDS: Record<string, Flashcard[]> = {
+  "doc-sample-1": [
+    {
+      id: "fc-1",
+      question: "Quelle condition impérative doit être respectée pour appliquer l'algorithme de Dijkstra ?",
+      answer: "Toutes les arêtes doivent posséder des poids strictement positifs ou nuls (w(e) >= 0). Sur poids négatifs, la décision gloutonne irréversible devient erronée.",
+      category: "Algorithmes",
+    },
+    {
+      id: "fc-2",
+      question: "Quel algorithme permet de détecter formellement un cycle absorbant négatif ?",
+      answer: "L'algorithme de Bellman-Ford. Une |V|-ième itération vérifie si une distance diminue encore, attestant de la présence d'un cycle de coût négatif.",
+      category: "Graphes",
+    },
+    {
+      id: "fc-3",
+      question: "Quelle est la complexité temporelle optimale de Dijkstra avec un tas binaire (min-heap) ?",
+      answer: "O((|V| + |E|) log |V|), où |V| est le nombre de sommets et |E| le nombre d'arêtes.",
+      category: "Complexité",
+    },
+    {
+      id: "fc-4",
+      question: "Quel principe algorithmique sous-tend l'algorithme de Floyd-Warshall et quelle est sa complexité ?",
+      answer: "La programmation dynamique (All-Pairs Shortest Paths) avec une complexité temporelle de O(|V|³) et spatiale de O(|V|²).",
+      category: "Programmation Dynamique",
+    },
+  ],
+}
+
+export const SAMPLE_QUIZZES: Record<string, QuizResponse> = {
+  "doc-sample-1": {
+    title: "Auto-évaluation : Graphes & Plus Courts Chemins",
+    questions: [
+      {
+        id: "q-1",
+        question: "Pourquoi l'algorithme de Dijkstra échoue-t-il sur un graphe avec des arêtes négatives ?",
+        options: [
+          "Il boucle indéfiniment sans s'arrêter",
+          "Son approche gloutonne ne revient jamais sur un sommet déjà marqué comme visité",
+          "Il ne fonctionne que sur les arbres non orientés",
+          "Il nécessite une matrice d'adjacence pleine",
+        ],
+        correct_option_index: 1,
+        explanation: "Dijkstra considère que la distance au sommet extrait est définitive. Si une arête négative ultérieure offrait un raccourci, Dijkstra ne la recalculerait pas.",
+      },
+      {
+        id: "q-2",
+        question: "Combien d'itérations complètes de relâchement Bellman-Ford effectue-t-il au maximum pour trouver les distances optimales ?",
+        options: ["|V| - 1 itérations", "|V| itérations", "|E| itérations", "log(|V|) itérations"],
+        correct_option_index: 0,
+        explanation: "Un chemin élémentaire sans cycle comporte au plus |V| - 1 arêtes. |V| - 1 itérations suffisent donc à propager toutes les distances.",
+      },
+    ],
+  },
+}
