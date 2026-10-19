@@ -1,175 +1,105 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { requireUser, isSupabaseConfigured } from '@/lib/supabase/server'
-import { getDevStore } from '@/lib/supabase/dev-store'
-import { ApiResponse } from '@/types/api'
-import { Profile, Database } from '@/types/database'
+import { NextRequest } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-user';
+import { updateProfileSchema } from '@/lib/validations/profile';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { prisma } from '@/lib/db/prisma';
 
-const updateProfileSchema = z.object({
-  full_name: z.string().trim().min(1, 'Full name cannot be empty').max(120).optional().nullable(),
-  academic_level: z.string().trim().max(100).optional().nullable(),
-  field_of_study: z.string().trim().max(120).optional().nullable(),
-  academic_goals: z.string().trim().max(1000).optional().nullable(),
-  avatar_url: z.string().url('Invalid avatar URL').optional().nullable().or(z.literal('')),
-})
+export const dynamic = 'force-dynamic';
 
-export async function GET(): Promise<NextResponse<ApiResponse<Profile>>> {
+/**
+ * GET /api/profile
+ * Retrieves the authenticated user's academic profile from MySQL
+ */
+export async function GET(request: NextRequest) {
   try {
-    const auth = await requireUser()
-    if (auth.error) {
-      return auth.error
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    const { user, supabase } = auth
+    let profile = await prisma.profile.findUnique({
+      where: { userId: user.id },
+    });
 
-    if (!isSupabaseConfigured()) {
-      const devProfile = getDevStore().profile
-      return NextResponse.json<ApiResponse<Profile>>({
-        success: true,
-        data: devProfile,
-      })
-    }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (error) {
-      return NextResponse.json<ApiResponse<Profile>>(
-        {
-          success: false,
-          error: error.message,
+    if (!profile) {
+      // Auto-création du profil si manquant
+      profile = await prisma.profile.create({
+        data: {
+          userId: user.id,
+          email: user.email,
+          onboardingCompleted: false,
         },
-        { status: 500 }
-      )
+      });
     }
 
-    if (!data) {
-      const devProfile = getDevStore().profile
-      return NextResponse.json<ApiResponse<Profile>>({
-        success: true,
-        data: devProfile,
-      })
-    }
-
-    return NextResponse.json<ApiResponse<Profile>>(
-      {
-        success: true,
-        data,
-      },
-      { status: 200 }
-    )
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
-    return NextResponse.json<ApiResponse<Profile>>(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    )
+    return apiSuccess(profile);
+  } catch (error) {
+    console.error('Erreur GET /api/profile :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }
 
-export async function PUT(request: NextRequest): Promise<NextResponse<ApiResponse<Profile>>> {
+/**
+ * PUT /api/profile
+ * Updates the authenticated user's academic profile in MySQL
+ */
+export async function PUT(request: NextRequest) {
   try {
-    const auth = await requireUser()
-    if (auth.error) {
-      return auth.error
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    const { user, supabase } = auth
+    const body = await request.json();
+    const validationResult = updateProfileSchema.safeParse(body);
 
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json<ApiResponse<Profile>>(
-        {
-          success: false,
-          error: 'Malformed JSON payload',
-        },
-        { status: 400 }
-      )
+    if (!validationResult.success) {
+      return apiError('Données de profil invalides', 400, {
+        errors: validationResult.error.flatten().fieldErrors,
+      });
     }
 
-    const parseResult = updateProfileSchema.safeParse(body)
-    if (!parseResult.success) {
-      return NextResponse.json<ApiResponse<Profile>>(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: parseResult.error.flatten(),
-        },
-        { status: 400 }
-      )
-    }
+    const data = validationResult.data;
 
-    const validatedData = parseResult.data
+    // Normaliser academic_goals en texte/JSON string
+    const academicGoals =
+      data.academic_goals !== undefined
+        ? typeof data.academic_goals === 'string'
+          ? data.academic_goals
+          : JSON.stringify(data.academic_goals)
+        : undefined;
 
-    const updatePayload: Database['public']['Tables']['profiles']['Update'] = {
-      ...validatedData,
-      avatar_url: validatedData.avatar_url || null,
-      updated_at: new Date().toISOString(),
-    }
-
-    if (!isSupabaseConfigured()) {
-      const current = getDevStore().profile
-      const updated: Profile = {
-        ...current,
-        ...updatePayload,
-      }
-      getDevStore().profile = updated
-      return NextResponse.json<ApiResponse<Profile>>({
-        success: true,
-        data: updated,
-      })
-    }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updatePayload)
-      .eq('id', user.id)
-      .select()
-      .maybeSingle()
-
-    if (error) {
-      return NextResponse.json<ApiResponse<Profile>>(
-        {
-          success: false,
-          error: error.message,
-        },
-        { status: 500 }
-      )
-    }
-
-    if (!data) {
-      return NextResponse.json<ApiResponse<Profile>>(
-        {
-          success: false,
-          error: 'Profile not found or not permitted to update',
-        },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json<ApiResponse<Profile>>(
-      {
-        success: true,
-        data,
+    const updatedProfile = await prisma.profile.upsert({
+      where: { userId: user.id },
+      update: {
+        ...(data.full_name !== undefined && { fullName: data.full_name }),
+        ...(data.academic_level !== undefined && { academicLevel: data.academic_level }),
+        ...(data.field_of_study !== undefined && { fieldOfStudy: data.field_of_study }),
+        ...(academicGoals !== undefined && { academicGoals }),
+        ...(data.avatar_url !== undefined && { avatarUrl: data.avatar_url || null }),
+        ...(data.onboarding_completed !== undefined && { onboardingCompleted: data.onboarding_completed }),
       },
-      { status: 200 }
-    )
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal Server Error'
-    return NextResponse.json<ApiResponse<Profile>>(
-      {
-        success: false,
-        error: message,
+      create: {
+        userId: user.id,
+        email: user.email,
+        fullName: data.full_name,
+        academicLevel: data.academic_level,
+        fieldOfStudy: data.field_of_study,
+        academicGoals,
+        avatarUrl: data.avatar_url || null,
+        onboardingCompleted: data.onboarding_completed ?? false,
       },
-      { status: 500 }
-    )
+    });
+
+    return apiSuccess(updatedProfile);
+  } catch (error) {
+    console.error('Erreur PUT /api/profile :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }

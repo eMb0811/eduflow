@@ -1,0 +1,276 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. UTILISATEURS & PROFILS ACADÉMIQUES
+// ==========================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("student")
+  lastActiveAt DateTime? @map("last_active_at")
+  lastActivePath String? @map("last_active_path")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  profile          Profile?
+  subjects         Subject[]
+  scheduleEntries  ScheduleEntry[]
+  revisionPlans    RevisionPlan[]
+  revisionSlots    RevisionSlot[]
+  chatSessions     ChatSession[]
+  chatMessages     ChatMessage[]
+  documents        Document[]
+  flashcards       Flashcard[]
+  quizzes          Quiz[]
+  pomodoroSessions PomodoroSession[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique @map("user_id")
+  email               String?
+  fullName            String?  @map("full_name")
+  academicLevel       String?  @map("academic_level") // e.g. Licence 2, Master 1, etc.
+  fieldOfStudy        String?  @map("field_of_study")  // e.g. Informatique, Droit, etc.
+  academicGoals       String?  @db.Text @map("academic_goals") // e.g. JSON ou texte
+  avatarUrl           String?  @db.Text @map("avatar_url")
+  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// ==========================================
+// 2. MATIÈRES & COURS
+// ==========================================
+
+model Subject {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  name        String
+  code        String?
+  color       String   @default("#3B82F6")
+  coefficient Float    @default(1.0)
+  professor   String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduleEntries  ScheduleEntry[]
+  chatSessions     ChatSession[]
+  documents        Document[]
+  flashcards       Flashcard[]
+  pomodoroSessions PomodoroSession[]
+
+  @@map("subjects")
+}
+
+// ==========================================
+// 3. EMPLOI DU TEMPS (OCR & IA)
+// ==========================================
+
+model ScheduleEntry {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  subjectId   String?  @map("subject_id")
+  subjectName String   @map("subject_name")
+  dayOfWeek   String   @map("day_of_week") // monday, tuesday, etc.
+  startTime   String   @map("start_time")  // HH:mm format
+  endTime     String   @map("end_time")    // HH:mm format
+  room        String?
+  professor   String?
+  color       String   @default("#3B82F6")
+  recurrence  String   @default("weekly")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  @@map("schedule_entries")
+}
+
+// ==========================================
+// 4. PLANNING INTELLIGENT DE RÉVISION
+// ==========================================
+
+model RevisionPlan {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  title         String    @default("Planning hebdomadaire")
+  weekStartDate DateTime? @map("week_start_date")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slots RevisionSlot[]
+
+  @@map("revision_plans")
+}
+
+model RevisionSlot {
+  id          String   @id @default(uuid())
+  planId      String?  @map("plan_id")
+  userId      String   @map("user_id")
+  subjectName String   @map("subject_name")
+  dayOfWeek   String   @map("day_of_week")
+  startTime   String   @map("start_time") // HH:mm
+  endTime     String   @map("end_time")   // HH:mm
+  focusTopic  String?  @map("focus_topic")
+  priority    String   @default("medium") // low, medium, high
+  status      String   @default("pending") // pending, completed, missed
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan RevisionPlan? @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@map("revision_slots")
+}
+
+// ==========================================
+// 5. ASSISTANT PÉDAGOGIQUE IA (CHAT RAG)
+// ==========================================
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String   @default("Nouvelle discussion")
+  subjectId String?  @map("subject_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject  Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  userId    String   @map("user_id")
+  role      String   // user, assistant, system
+  content   String   @db.Text
+  metadata  String?  @db.Text // JSON stringified
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+// ==========================================
+// 6. DOCUMENTS, FLASHCARDS & QUIZ
+// ==========================================
+
+model Document {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  subjectId     String?  @map("subject_id")
+  title         String
+  fileUrl       String   @db.Text @map("file_url")
+  filePath      String   @db.Text @map("file_path")
+  fileType      String?  @map("file_type")
+  fileSize      BigInt?  @map("file_size")
+  extractedText String?  @db.LongText @map("extracted_text")
+  summary       String?  @db.LongText
+  keyConcepts   String?  @db.LongText @map("key_concepts") // JSON stringified array
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject    Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  flashcards Flashcard[]
+  quizzes    Quiz[]
+
+  @@map("documents")
+}
+
+model Flashcard {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  documentId     String?   @map("document_id")
+  subjectId      String?   @map("subject_id")
+  question       String    @db.Text
+  answer         String    @db.Text
+  difficulty     String    @default("medium") // easy, medium, hard
+  reviewCount    Int       @default(0) @map("review_count")
+  lastReviewedAt DateTime? @map("last_reviewed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  subject  Subject?  @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  @@map("flashcards")
+}
+
+model Quiz {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  documentId     String?  @map("document_id")
+  title          String
+  description    String?  @db.Text
+  totalQuestions Int      @default(0) @map("total_questions")
+  bestScore      Int?     @map("best_score")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document  Document?      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id                 String   @id @default(uuid())
+  quizId             String   @map("quiz_id")
+  question           String   @db.Text
+  options            String   @db.Text // JSON stringified array of string choices
+  correctAnswerIndex Int      @map("correct_answer_index")
+  explanation        String?  @db.Text
+  orderNum           Int      @default(0) @map("order_num")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_questions")
+}
+
+// ==========================================
+// 7. FOCUS POMODORO & STATISTIQUES
+// ==========================================
+
+model PomodoroSession {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  subjectId       String?  @map("subject_id")
+  durationMinutes Int      @default(25) @map("duration_minutes")
+  type            String   @default("study") // study, short_break, long_break
+  notes           String?  @db.Text
+  completedAt     DateTime @default(now()) @map("completed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  @@map("pomodoro_sessions")
+}

@@ -1,9 +1,0 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  serverExternalPackages: ["@google/genai", "gaxios", "google-auth-library"],
-  cacheComponents: true,
-  partialPrefetching: true,
-};
-
-export default nextConfig;

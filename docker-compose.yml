@@ -1,0 +1,49 @@
+services:
+  mysql:
+    image: mariadb:10.11
+    container_name: eduflow-mysql
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: eduflow
+      MYSQL_USER: eduflow
+      MYSQL_PASSWORD: eduflow
+    ports:
+      - '3306:3306'
+    volumes:
+      - eduflow_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eduflow-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DOCKER_DATABASE_URL:-mysql://eduflow:eduflow@mysql:3306/eduflow}
+      JWT_SECRET: ${JWT_SECRET:-eduflow-secret-key-development-hackathon-2026-secure-token}
+      PRISMA_SEED: ${PRISMA_SEED:-true}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-AQ.Ab8RN6Jry3OC988h1q9dy6llkfSVut1Aag1FMfc8RvH5nuybQA}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    ports:
+      - '3000:3000'
+    volumes:
+      - eduflow_uploads:/app/public/uploads
+
+volumes:
+  eduflow_mysql_data:
+  eduflow_uploads:

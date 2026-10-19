@@ -1,179 +1,124 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "katex/dist/katex.min.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-outfit);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-info: var(--info);
-  --color-brand-2: var(--brand-2);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-
-  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-}
-
-/* EduFlow palette — neutral slate & crisp deep blue, zero purple/violet */
 :root {
-  --background: oklch(0.99 0.002 240);
-  --foreground: oklch(0.18 0.015 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.015 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.015 240);
-  --primary: oklch(0.38 0.12 250);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.005 240);
-  --secondary-foreground: oklch(0.22 0.02 240);
-  --muted: oklch(0.96 0.004 240);
-  --muted-foreground: oklch(0.48 0.015 240);
-  --accent: oklch(0.94 0.01 240);
-  --accent-foreground: oklch(0.2 0.02 240);
-  --destructive: oklch(0.58 0.22 25);
-  --success: oklch(0.6 0.16 155);
-  --warning: oklch(0.72 0.15 75);
-  --info: oklch(0.6 0.14 240);
-  --brand-2: oklch(0.38 0.12 250);
-  --border: oklch(0.91 0.006 240);
-  --input: oklch(0.91 0.006 240);
-  --ring: oklch(0.38 0.12 250);
-  --chart-1: oklch(0.38 0.12 250);
-  --chart-2: oklch(0.55 0.12 200);
-  --chart-3: oklch(0.72 0.15 75);
-  --chart-4: oklch(0.58 0.18 350);
-  --chart-5: oklch(0.6 0.16 155);
+  /* Palette Mode Clair : Ivoire académique chaleureux, apaisant et ergonomique */
+  --background: 40 25% 98%;       /* Fond alabaster / ivoire chaud #FAF8F5 */
+  --foreground: 220 24% 12%;      /* Texte obsidienne profond #161A22 */
+  --card: 0 0% 100%;              /* Surface de carte blanc papier pur #FFFFFF */
+  --card-foreground: 220 24% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 24% 12%;
+  --primary: 222 35% 15%;         /* Boutons et accents primaires noir ardoise #192132 */
+  --primary-foreground: 40 25% 98%;
+  --secondary: 40 18% 93%;        /* Chips et badges neutres chauds #EFECE6 */
+  --secondary-foreground: 220 20% 18%;
+  --muted: 40 15% 93%;
+  --muted-foreground: 220 10% 46%;/* Texte secondaire équilibré #687182 */
+  --accent: 38 92% 50%;           /* Ambre chaud Kocc #F59E0B */
+  --accent-foreground: 222 35% 15%;
+  --border: 38 16% 88%;           /* Bordure parchemin chaleureuse #E8E4DC */
+  --input: 38 16% 88%;
+  --ring: 222 35% 20%;
   --radius: 0.5rem;
-  --sidebar: oklch(0.985 0.003 240);
-  --sidebar-foreground: oklch(0.18 0.015 240);
-  --sidebar-primary: oklch(0.38 0.12 250);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.94 0.008 240);
-  --sidebar-accent-foreground: oklch(0.15 0.02 240);
-  --sidebar-border: oklch(0.91 0.006 240);
-  --sidebar-ring: oklch(0.38 0.12 250);
 }
 
 .dark {
-  --background: oklch(0.12 0.015 250);
-  --foreground: oklch(0.97 0.005 240);
-  --card: oklch(0.16 0.018 250);
-  --card-foreground: oklch(0.97 0.005 240);
-  --popover: oklch(0.16 0.018 250);
-  --popover-foreground: oklch(0.97 0.005 240);
-  --primary: oklch(0.64 0.20 250);
-  --primary-foreground: oklch(0.10 0.01 250);
-  --secondary: oklch(0.22 0.02 250);
-  --secondary-foreground: oklch(0.96 0.005 240);
-  --muted: oklch(0.19 0.015 250);
-  --muted-foreground: oklch(0.70 0.02 250);
-  --accent: oklch(0.23 0.02 250);
-  --accent-foreground: oklch(0.97 0.005 240);
-  --destructive: oklch(0.65 0.2 25);
-  --success: oklch(0.68 0.16 160);
-  --warning: oklch(0.78 0.15 75);
-  --info: oklch(0.65 0.18 245);
-  --brand-2: oklch(0.64 0.20 250);
-  --border: oklch(0.24 0.02 250);
-  --input: oklch(0.18 0.02 250);
-  --ring: oklch(0.64 0.20 250);
-  --chart-1: oklch(0.64 0.20 250);
-  --chart-2: oklch(0.68 0.15 160);
-  --chart-3: oklch(0.78 0.15 75);
-  --chart-4: oklch(0.68 0.18 350);
-  --chart-5: oklch(0.68 0.16 160);
-  --sidebar: oklch(0.13 0.015 250);
-  --sidebar-foreground: oklch(0.97 0.005 240);
-  --sidebar-primary: oklch(0.64 0.20 250);
-  --sidebar-primary-foreground: oklch(0.10 0.01 250);
-  --sidebar-accent: oklch(0.19 0.018 250);
-  --sidebar-accent-foreground: oklch(0.97 0.005 240);
-  --sidebar-border: oklch(0.22 0.02 250);
-  --sidebar-ring: oklch(0.64 0.20 250);
+  /* Palette Mode Sombre : Slate profond et contrasté */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 5.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 5.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 38 92% 50%;
+  --accent-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
-  }
-  h1, h2, h3 {
-    @apply font-heading tracking-tight;
-  }
-  :focus-visible {
-    @apply outline-2 outline-offset-2 outline-ring;
-  }
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
 }
 
-@layer components {
-  .glass {
-    @apply border border-border/80 bg-card/85 backdrop-blur-md;
-  }
-  .card-interactive {
-    @apply transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-sm;
-  }
-  .text-gradient {
-    @apply text-foreground font-semibold;
-  }
-  .bg-brand-gradient {
-    @apply bg-primary text-primary-foreground;
-  }
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+/* Scrollbar élégante, fine et discrète */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Aucun élément de formulaire brut natif */
+input, select, textarea, button {
+  font-family: inherit;
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+@layer utilities {
+  /* Masquer la scrollbar tout en conservant le défilement */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Micro-interaction tactile et élégante au clic */
+  .interactive-tap {
+    @apply active:scale-[0.98] transition-transform duration-150 ease-out select-none;
+  }
+
+  /* Effet de carte académique interactive avec double bordure et élévation douce */
+  .academic-card-interactive {
+    @apply relative overflow-hidden rounded-xl border border-[#E8E4DC] bg-white ring-1 ring-inset ring-black/[0.02] shadow-[0_1px_3px_rgba(0,0,0,0.03),0_4px_12px_rgba(30,26,20,0.025)] transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-600/40 hover:ring-amber-500/20 hover:shadow-[0_12px_28px_-6px_rgba(30,26,20,0.08)] active:scale-[0.99] dark:border-slate-800/90 dark:bg-slate-900/95 dark:ring-white/[0.04] dark:hover:border-amber-400/35 dark:hover:ring-amber-400/20 dark:hover:shadow-[0_14px_36px_-8px_rgba(0,0,0,0.5)];
+  }
+
+  /* Double encadrement éditorial pour panneaux et conteneurs académiques */
+  .academic-frame {
+    @apply rounded-xl border border-[#E8E4DC] ring-1 ring-inset ring-black/[0.02] dark:border-slate-800/90 dark:ring-white/[0.05];
   }
 }

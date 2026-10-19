@@ -1,110 +1,148 @@
-import { NextResponse } from "next/server"
-import { requireUser, isSupabaseConfigured } from "@/lib/supabase/server"
-import { getDevStore } from "@/lib/supabase/dev-store"
-import type { ApiResponse } from "@/types/api"
-import type { ScheduleEntry } from "@/types/database"
+import { NextRequest } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-user';
+import { saveScheduleEntriesSchema, scheduleItemSchema } from '@/lib/validations/schedule';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { prisma } from '@/lib/db/prisma';
+import {
+  ensureDefaultScheduleEntries,
+  syncPlanningWithSchedule,
+} from '@/lib/schedule/auto-planner';
 
-export async function GET(): Promise<NextResponse<ApiResponse<ScheduleEntry[]>>> {
+export const dynamic = 'force-dynamic';
+
+/**
+ * GET /api/schedule
+ * Récupère tous les cours de l'emploi du temps de l'étudiant depuis MySQL
+ */
+export async function GET(request: NextRequest) {
   try {
-    const auth = await requireUser()
-    if (auth.error) {
-      return auth.error
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    const { user, supabase } = auth
+    const entries = await ensureDefaultScheduleEntries(user.id);
 
-    if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase
-        .from("schedule_entries")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("start_time", { ascending: true })
-
-      if (error) {
-        return NextResponse.json<ApiResponse<ScheduleEntry[]>>(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        )
-      }
-
-      if (data && data.length > 0) {
-        return NextResponse.json<ApiResponse<ScheduleEntry[]>>(
-          {
-            success: true,
-            data,
-          },
-          { status: 200 }
-        )
-      }
-    }
-
-    // Dev store fallback
-    const entries = getDevStore().scheduleEntries
-    return NextResponse.json<ApiResponse<ScheduleEntry[]>>(
-      {
-        success: true,
-        data: entries,
-      },
-      { status: 200 }
-    )
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erreur interne du serveur"
-    return NextResponse.json<ApiResponse<ScheduleEntry[]>>(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    )
+    return apiSuccess(
+      entries.map((e) => ({
+        id: e.id,
+        user_id: e.userId,
+        subject_id: e.subjectId,
+        subject_name: e.subjectName,
+        day_of_week: e.dayOfWeek,
+        start_time: e.startTime,
+        end_time: e.endTime,
+        room: e.room,
+        professor: e.professor,
+        color: e.color,
+        recurrence: e.recurrence,
+        created_at: e.createdAt.toISOString(),
+        updated_at: e.updatedAt.toISOString(),
+      }))
+    );
+  } catch (error) {
+    console.error('Erreur GET /api/schedule :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }
 
-export async function DELETE(): Promise<NextResponse<ApiResponse<{ deleted: boolean }>>> {
+/**
+ * POST /api/schedule
+ * Enregistre un cours ou un lot de cours dans MySQL et synchronise automatiquement le Planning de révision
+ */
+export async function POST(request: NextRequest) {
   try {
-    const auth = await requireUser()
-    if (auth.error) {
-      return auth.error
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    const { user, supabase } = auth
+    const body = await request.json();
 
-    if (isSupabaseConfigured() && supabase) {
-      const { error } = await supabase
-        .from("schedule_entries")
-        .delete()
-        .eq("user_id", user.id)
+    let entriesToInsert: Array<{
+      subject_name: string;
+      day_of_week: string;
+      start_time: string;
+      end_time: string;
+      room?: string | null;
+      professor?: string | null;
+      color?: string;
+    }> = [];
 
-      if (error) {
-        return NextResponse.json<ApiResponse<{ deleted: boolean }>>(
-          {
-            success: false,
-            error: error.message,
-          },
-          { status: 500 }
-        )
+    let replaceExisting = false;
+
+    if (body && Array.isArray(body.entries)) {
+      const batchValidation = saveScheduleEntriesSchema.safeParse(body);
+      if (!batchValidation.success) {
+        return apiError('Format de cours invalide', 400, {
+          errors: batchValidation.error.flatten().fieldErrors,
+        });
       }
+      entriesToInsert = batchValidation.data.entries;
+      replaceExisting = batchValidation.data.replace_existing;
     } else {
-      getDevStore().scheduleEntries = []
+      const singleValidation = scheduleItemSchema.safeParse(body);
+      if (!singleValidation.success) {
+        return apiError('Format de cours invalide', 400, {
+          errors: singleValidation.error.flatten().fieldErrors,
+        });
+      }
+      entriesToInsert = [singleValidation.data];
     }
 
-    return NextResponse.json<ApiResponse<{ deleted: boolean }>>(
-      {
-        success: true,
-        data: { deleted: true },
-      },
-      { status: 200 }
-    )
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erreur interne du serveur"
-    return NextResponse.json<ApiResponse<{ deleted: boolean }>>(
-      {
-        success: false,
-        error: message,
-      },
-      { status: 500 }
-    )
+    if (replaceExisting) {
+      await prisma.scheduleEntry.deleteMany({
+        where: { userId: user.id },
+      });
+    }
+
+    const created = await prisma.$transaction(
+      entriesToInsert.map((entry) =>
+        prisma.scheduleEntry.create({
+          data: {
+            userId: user.id,
+            subjectName: entry.subject_name,
+            dayOfWeek: entry.day_of_week,
+            startTime: entry.start_time,
+            endTime: entry.end_time,
+            room: entry.room || null,
+            professor: entry.professor || null,
+            color: entry.color || '#3B82F6',
+            recurrence: 'weekly',
+          },
+        })
+      )
+    );
+
+    // Synchroniser automatiquement le Planning de Révision avec le nouvel emploi du temps
+    await syncPlanningWithSchedule(user.id, { forceRebuild: true });
+
+    return apiSuccess(
+      created.map((e) => ({
+        id: e.id,
+        user_id: e.userId,
+        subject_id: e.subjectId,
+        subject_name: e.subjectName,
+        day_of_week: e.dayOfWeek,
+        start_time: e.startTime,
+        end_time: e.endTime,
+        room: e.room,
+        professor: e.professor,
+        color: e.color,
+        recurrence: e.recurrence,
+        created_at: e.createdAt.toISOString(),
+        updated_at: e.updatedAt.toISOString(),
+      })),
+      201
+    );
+  } catch (error) {
+    console.error('Erreur POST /api/schedule :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }

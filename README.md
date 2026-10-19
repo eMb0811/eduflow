@@ -1,119 +1,136 @@
 # 🎓 EduFlow — Plateforme d'Assistance Éducative Intelligente
 
-> **Hackathon Open Source × AI 2026**  
-> Propulsé par **Google Gemini 3.8 Flash** et **Supabase PostgreSQL (RLS & Private Storage)**  
-> Licence : [MIT](LICENSE)
+> **Événement :** Hackathon Open Source × AI 2026 (Galsen DEV / Hacktoberfest Dakar)  
+> **Mode de Conception :** Orchestration par 3 Agents IA Collaboratifs  
+> **Licence :** Open Source (MIT)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth-emerald?logo=supabase)](https://supabase.com/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_%26_2.0_Flash-orange?logo=google)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 🌟 Présentation
+## 👥 Équipe Multi-Agents IA
 
-**EduFlow** est une plateforme web moderne conçue pour alléger la charge mentale des étudiants universitaires. En combinant la puissance de modèles multimodaux d'IA et les meilleures pratiques des sciences cognitives, EduFlow transforme la gestion académique quotidienne en une expérience fluide, stimulante et organisée :
-
-1. **Extraction d'Emploi du Temps par Vision (OCR) :** Déposez une photo ou un PDF de votre emploi du temps ; Gemini Vision extrait automatiquement les cours, salles et créneaux avec normalisation 24h.
-2. **Générateur de Planning Intelligent :** L'IA analyse vos créneaux libres, vos examens imminents et vos objectifs académiques pour concevoir un planning de révision quotidien sans aucun chevauchement horaire.
-3. **Hub de Cours & Révisions Actives :**
-   - **Synthèse Cognitive :** Résumés structurés avec concepts clés, définitions et points essentiels pour l'examen.
-   - **Flashcards 3D Spaced Repetition :** Cartes de mémorisation réversibles avec animation 3D et auto-évaluation (« Je maîtrise » / « À revoir »).
-   - **Quiz QCM Formatif :** Évaluations interactives à 4 choix avec distracteurs réalistes, explications détaillées et calcul instantané du score.
-4. **Assistant Pédagogique en Streaming KaTeX :** Un tuteur IA interactif capable d'expliquer pas-à-pas les notions les plus complexes, avec rendu dynamique des formules mathématiques ($\LaTeX$ / KaTeX), tableaux et code annoté.
-5. **Minuteur Pomodoro Persistant :** Sessions de concentration et pauses rythmées par un carillon Web Audio API, persistées en base Supabase pour alimenter les statistiques du tableau de bord.
+| Agent | Rôle | Périmètre Technologique |
+| :--- | :--- | :--- |
+| **Agent 1** | **Backend & Data Engineer** | Supabase (PostgreSQL, Auth, Storage), API Routes Next.js, Gemini API (OCR, RAG, GenAI) |
+| **Agent 2** | **Frontend & UI/UX Engineer** | Next.js App Router, Tailwind CSS, Shadcn/UI, React Native / Expo, State Management |
+| **Agent 3** | **Auditor, QA & Lead Integrator** | Code Review, Audit RLS & Sécurité, Tests d'Intégration, Conformité Hackathon |
 
 ---
 
-## 🛠️ Stack Technique
+## ✨ Fonctionnalités Clés du MVP
 
-- **Frontend :** Next.js 16 (App Router), React 19, Tailwind CSS v4, Framer Motion, Lucide Icons, Sonner.
-- **Rendu Mathématique & Markdown :** `react-markdown`, `remark-math`, `rehype-katex`.
-- **Backend & API :** Next.js Route Handlers avec validation stricte [Zod](https://zod.dev).
-- **Intelligence Artificielle :** SDK `@google/genai` avec modèle `gemini-3.8-flash` (mode multimodal, structured JSON et streaming).
-- **Base de Données & Auth :** Supabase PostgreSQL avec **Row Level Security (RLS)** activé sur toutes les tables et stockage privé par utilisateur.
+1. **🔐 Authentification & Profil Académique (Module 1) :**
+   - Inscription et connexion sécurisées via Supabase Auth.
+   - Création automatique du profil via trigger PostgreSQL `on_auth_user_created`.
+   - Paramétrage du niveau d'études, domaine et objectifs académiques.
+
+2. **📸 OCR & Extraction d'Emploi du Temps par IA (Module 2) :**
+   - Glisser-déposer de photos ou PDF d'emplois du temps.
+   - Extraction structurée (jours, heures, salles, professeurs) avec **Gemini Vision**.
+   - Affichage interactif dans un calendrier hebdomadaire réactif.
+
+3. **📅 Générateur de Planning Intelligent de Révision (Module 3) :**
+   - Algorithme IA croisant les créneaux libres de l'emploi du temps, les objectifs académiques et le volume de travail cible.
+   - Zéro conflit d'horaires et répartition équilibrée avec temps de pause.
+
+4. **💬 Assistant Pédagogique Intelligent & RAG (Module 4) :**
+   - Chat interactif en temps réel avec streaming Server-Sent Events (SSE).
+   - Contexte enrichi par les documents de cours de l'étudiant.
+   - Rendu Markdown avec formules mathématiques KaTeX et coloration syntaxique de code.
+
+5. **📚 Gestionnaire de Cours, Synthèse, Flashcards & Quiz (Modules 5 & 6) :**
+   - Stockage sécurisé des cours dans Supabase Storage.
+   - Synthèse automatique avec extraction de concepts clés.
+   - Génération de cartes mémoires (flashcards) pour mémorisation active (active recall).
+   - QCM interactifs auto-évalués avec explications détaillées.
+
+6. **⏱️ Chronomètre Pomodoro & Statistiques (Module 7) :**
+   - Sessions de travail et de pauses courtes/longues.
+   - Historique et calcul automatique des minutes étudiées par jour et par semaine.
+
+7. **📊 Tableau de Bord Centralisé (Module 8) :**
+   - Synthèse de la journée : cours à venir, créneaux de révision, documents récents, séries d'étude (streak).
 
 ---
 
-## 🚀 Démarrage Rapide
+## ⚡ Lancement Rapide (Quickstart)
 
-### 1. Installation en une commande
-
+### 1. Cloner et Installer
 ```bash
-git clone https://github.com/eMb0811/eduflow.git
+git clone https://github.com/votre-org/eduflow.git
 cd eduflow
 npm install
 ```
 
-### 2. Configuration des Variables d'Environnement
-
-Copiez le modèle de configuration :
+### 2. Configurer l'Environnement
+Copiez le modèle de configuration et renseignez vos clés :
 ```bash
 cp .env.example .env.local
 ```
 
-Remplissez votre fichier `.env.local` avec vos identifiants Supabase et votre clé Gemini API :
+Variables requises dans `.env.local` :
 ```env
-# Configuration Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=votre-cle-anon-publique
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre-cle-anonyme
 SUPABASE_SERVICE_ROLE_KEY=votre-cle-service-role
-
-# Google Gemini API
-GEMINI_API_KEY=votre-cle-api-gemini
-GEMINI_MODEL=gemini-3.8-flash
-
-# Mocks désactivés (données réelles)
-NEXT_PUBLIC_USE_MOCKS=false
+GEMINI_API_KEY=votre-cle-gemini-api
 ```
 
-### 3. Lancement du Serveur de Développement
+### 3. Appliquer les Migrations Supabase
+Copiez et exécutez le script SQL idempotent dans le **SQL Editor** de Supabase :
+👉 `supabase/migrations/20261011000001_initial_schema.sql`
 
+### 4. Démarrer le Serveur en Développement
 ```bash
 npm run dev
 ```
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-L'application est immédiatement accessible sur [http://localhost:3000](http://localhost:3000).
-
----
-
-## 🗄️ Schéma de Base de Données (Supabase)
-
-L'ensemble des tables et politiques de sécurité RLS sont définies dans `supabase/migrations/0001_init.sql` :
-- `profiles` : Profil académique et objectifs de l'étudiant.
-- `subjects` : Matières et codes couleurs associés.
-- `exams` : Dates de partiels et examens à venir.
-- `schedule_entries` : Cours hebdomadaires extraits de l'emploi du temps.
-- `documents` : Supports de cours et notes attachées.
-- `pomodoro_sessions` : Historique des sessions de travail et pauses.
-- `chat_messages` : Historique conversationnel avec l'Assistant IA.
-
-Buckets privés dans Supabase Storage : `schedules` et `documents`.
+### 5. Démarrer avec Docker & Docker Compose
+Pour déployer instantanément EduFlow et sa base MySQL 8 avec initialisation automatique :
+```bash
+docker compose up -d --build
+```
+- **Application Next.js :** [http://localhost:3000](http://localhost:3000)
+- **Base MySQL :** `localhost:3306` (schéma et comptes pré-initialisés via `PRISMA_SEED=true`).
 
 ---
 
-## 🧪 Qualité & Tests
+## 🧪 Tests & Audit Qualité
 
-Le projet respecte une politique stricte de zéro avertissement et zéro erreur :
+Pour exécuter la suite de tests et vérifier la conformité du projet :
 
 ```bash
-# Vérification du typage TypeScript
-npm run typecheck
+# Vérification des types TypeScript stricts
+npm run type-check
 
-# Analyse statique et respect des règles React 19
-npm run lint
+# Exécution de la suite de tests automatisés Backend & Sécurité
+npm run test:backend
 
-# Build de production complet Webpack
+# Audit complet (Typecheck + Tests QA)
+npm run audit
+
+# Build de production Next.js
 npm run build
 ```
 
 ---
 
-## 📚 Documentation du Projet
+## 🔒 Sécurité & Bonnes Pratiques
 
-- **[Scénario de Démonstration (3 min)](docs/DEMO.md)** : Guide chronométré pour la présentation devant le jury du hackathon.
-- **[Rapport d'Audit Technique & Sécurité](docs/AUDIT.md)** : Rapport complet sur les politiques RLS, l'étanchéité des secrets et la robustesse des prompts.
-- **[Document de Passation Technique (HANDOFF)](docs/HANDOFF.md)** : Journal d'architecture détaillée et historique des sprints 1, 2 et 3.
-- **[Spécifications Produit (PRD)](docs/PRD.md)** : Cahier des charges initial et vision produit.
+- **Row Level Security (RLS) :** Activée sur 100% des tables PostgreSQL pour empêcher toute fuite de données entre étudiants.
+- **Zéro Clé Exposée :** La clé secrète `GEMINI_API_KEY` et `SUPABASE_SERVICE_ROLE_KEY` restent exclusivement sur le serveur.
+- **Validation Zod :** Toutes les routes protégées valident rigoureusement les entrées pour éliminer les injections et payloads corrompus.
+- **Tolérance aux Pannes IA :** Parsing défensif avec extraction par regex et retries automatiques pour les réponses JSON de Gemini.
 
 ---
 
 ## 📄 Licence
 
-Ce projet est distribué sous licence MIT. Consultez le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est sous licence **MIT** — voir le fichier [LICENSE](file:///c:/workspace/dev/eduflow/LICENSE) pour plus de détails.
+Projet développé pour le **Hackathon Open Source × AI 2026**.

@@ -1,182 +1,282 @@
-import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
-import { requireUser } from "@/lib/supabase/server"
-import type { ApiResponse } from "@/types/api"
-import type { Document } from "@/types/database"
-import { mockUserDocuments } from "@/lib/mocks/documents"
+import { NextRequest } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-user';
+import { createDocumentSchema } from '@/lib/validations/document';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { prisma } from '@/lib/db/prisma';
+import { analyzeCourseAutomatically } from '@/lib/courses/kocc-packs';
+import { extractDocumentContent, processCourseDocumentWithAi } from '@/lib/courses/document-processor';
+import fs from 'fs/promises';
+import path from 'path';
 
-// In-memory fallback store for local development without active user session
-let localDocumentsStore: Document[] = [...mockUserDocuments]
+export const dynamic = 'force-dynamic';
 
-const createDocumentSchema = z.object({
-  title: z.string().trim().min(1, "Le titre est requis").max(200),
-  file_url: z.string().url("URL de fichier invalide").or(z.string().min(1)),
-  subject_id: z.string().uuid().nullable().optional(),
-})
-
-export async function GET(): Promise<NextResponse<ApiResponse<Document[]>>> {
+function safeParseConcepts(raw: string | null | undefined): string[] {
+  if (!raw) return [];
   try {
-    const auth = await requireUser()
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [String(parsed)];
+  } catch {
+    return [raw];
+  }
+}
 
-    if (!auth.error && auth.user) {
-      const { data, error } = await auth.supabase
-        .from("documents")
-        .select("*")
-        .eq("user_id", auth.user.id)
-        .order("created_at", { ascending: false })
+/**
+ * GET /api/documents
+ * Liste tous les cours et Packs de Révision Kocc de l'étudiant
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
+    }
 
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: "Erreur lors de la récupération des documents", details: error.message },
-          { status: 500 }
-        )
-      }
+    const documents = await prisma.document.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        subject: true,
+        flashcards: true,
+        quizzes: {
+          include: {
+            questions: {
+              orderBy: { orderNum: 'asc' },
+            },
+          },
+        },
+      },
+    });
 
-      // If user has no documents yet in Supabase, return local sample courses as starting material
-      const docs = data && data.length > 0 ? (data as Document[]) : localDocumentsStore
+    return apiSuccess(
+      documents.map((doc) => {
+        const bestQuizScore =
+          doc.quizzes.length > 0
+            ? Math.max(...doc.quizzes.map((q) => q.bestScore ?? 0))
+            : 0;
 
-      return NextResponse.json({
-        success: true,
-        data: docs,
+        return {
+          id: doc.id,
+          user_id: doc.userId,
+          subject_id: doc.subjectId,
+          subject_name: doc.subject?.name || 'Cours Général',
+          subject_color: doc.subject?.color || '#4F46E5',
+          title: doc.title,
+          file_url: doc.fileUrl,
+          file_path: doc.filePath,
+          file_type: doc.fileType,
+          file_size: doc.fileSize ? Number(doc.fileSize) : null,
+          extracted_text: doc.extractedText,
+          summary: doc.summary,
+          key_concepts: safeParseConcepts(doc.keyConcepts),
+          flashcards_count: doc.flashcards.length,
+          quizzes_count: doc.quizzes.length,
+          mastery_score: bestQuizScore,
+          created_at: doc.createdAt.toISOString(),
+          updated_at: doc.updatedAt.toISOString(),
+        };
       })
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: localDocumentsStore,
-    })
-  } catch (err: unknown) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Erreur inattendue",
-        details: err instanceof Error ? err.message : String(err),
-      },
-      { status: 500 }
-    )
+    );
+  } catch (error) {
+    console.error('Erreur GET /api/documents :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<Document>>> {
+/**
+ * POST /api/documents
+ * Pipeline double :
+ * A) Dépôt d'un fichier de cours (PDF, TXT, MD)
+ * B) Génération d'un Pack de Révision Kocc SANS PDF (à partir de la matière + thème/chapitre saisi)
+ */
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json()
-    const parsed = createDocumentSchema.safeParse(body)
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Données de document invalides",
-          details: parsed.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      )
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    const { title, file_url, subject_id } = parsed.data
-    const auth = await requireUser()
+    const userProfile = await prisma.profile.findUnique({
+      where: { userId: user.id },
+      select: { academicLevel: true, fieldOfStudy: true },
+    });
 
-    if (!auth.error && auth.user) {
-      const { data, error } = await auth.supabase
-        .from("documents")
-        .insert({
-          user_id: auth.user.id,
-          title,
-          file_url,
-          subject_id: subject_id || null,
-        })
-        .select()
-        .single()
+    const scheduleEntries = await prisma.scheduleEntry.findMany({
+      where: { userId: user.id },
+      select: { subjectName: true, color: true },
+    });
+    const scheduleSubjects = scheduleEntries.map((e) => ({
+      name: e.subjectName,
+      color: e.color || '#4F46E5',
+    }));
 
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: "Échec de l'enregistrement du document", details: error.message },
-          { status: 500 }
-        )
+    const contentType = request.headers.get('content-type') || '';
+
+    let rawTitle = 'Document de cours';
+    let explicitSubjectName: string | undefined = undefined;
+    let fileUrl = '/uploads/documents/document.pdf';
+    let filePath = '/uploads/documents/document.pdf';
+    let fileType = 'application/pdf';
+    let fileSize: bigint | null = null;
+    let extractedText: string | null = null;
+    let uploadedBuffer: Buffer | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+
+      if (!file) {
+        return apiError('Fichier manquant dans la requête (champ "file")', 400);
       }
 
-      return NextResponse.json(
-        {
-          success: true,
-          data: data as Document,
-        },
-        { status: 201 }
-      )
-    }
+      rawTitle = (formData.get('title') as string) || file.name;
+      explicitSubjectName = (formData.get('subject_name') as string) || undefined;
+      fileType = file.type || 'application/octet-stream';
+      fileSize = BigInt(file.size);
 
-    // Fallback store
-    const newDoc: Document = {
-      id: `doc-${Date.now()}`,
-      user_id: "00000000-0000-0000-0000-000000000000",
-      title,
-      file_url,
-      subject_id: subject_id || null,
-      created_at: new Date().toISOString(),
-    }
-    localDocumentsStore.unshift(newDoc)
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'documents');
+      await fs.mkdir(uploadDir, { recursive: true });
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: newDoc,
-      },
-      { status: 201 }
-    )
-  } catch (err: unknown) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Erreur serveur",
-        details: err instanceof Error ? err.message : String(err),
-      },
-      { status: 500 }
-    )
-  }
-}
+      const safeFileName = `${user.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      filePath = path.join(uploadDir, safeFileName);
+      fileUrl = `/uploads/documents/${safeFileName}`;
 
-export async function DELETE(req: NextRequest): Promise<NextResponse<ApiResponse<{ deleted: boolean }>>> {
-  try {
-    const { searchParams } = new URL(req.url)
-    const id = searchParams.get("id")
+      const arrayBuffer = await file.arrayBuffer();
+      uploadedBuffer = Buffer.from(arrayBuffer);
+      await fs.writeFile(filePath, uploadedBuffer);
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, error: "Paramètre id manquant" },
-        { status: 400 }
-      )
-    }
-
-    const auth = await requireUser()
-
-    if (!auth.error && auth.user) {
-      const { error } = await auth.supabase
-        .from("documents")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", auth.user.id)
-
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: "Erreur lors de la suppression", details: error.message },
-          { status: 500 }
-        )
+      // Extraction RÉELLE du contenu (PDF numérique, PDF scanné via OCR Gemini, TXT, MD)
+      try {
+        extractedText = await extractDocumentContent(uploadedBuffer, file.name, fileType);
+      } catch (extractErr) {
+        console.error('[POST /api/documents] Erreur extraction texte :', extractErr);
+        if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+          extractedText = uploadedBuffer.toString('utf-8');
+        }
       }
+    } else {
+      const body = await request.json();
+      const validationResult = createDocumentSchema.safeParse(body);
+
+      if (!validationResult.success) {
+        return apiError('Métadonnées de document invalides', 400, {
+          errors: validationResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const docData = validationResult.data;
+      rawTitle = docData.title;
+      fileUrl = docData.file_url;
+      filePath = docData.file_path;
+      fileType = docData.file_type || 'application/pdf';
+      fileSize = docData.file_size ? BigInt(docData.file_size) : null;
+      extractedText = docData.extracted_text || null;
     }
 
-    localDocumentsStore = localDocumentsStore.filter((d) => d.id !== id)
+    // Analyse pédagogique approfondie avec Gemini 3.8 Flash à partir du CONTENU RÉEL
+    const analysis = await processCourseDocumentWithAi({
+      rawTitle,
+      extractedText,
+      fileBuffer: uploadedBuffer,
+      fileType,
+      scheduleSubjects,
+      explicitSubjectName,
+      academicLevel: userProfile?.academicLevel,
+    });
 
-    return NextResponse.json({
-      success: true,
-      data: { deleted: true },
-    })
-  } catch (err: unknown) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Erreur serveur",
-        details: err instanceof Error ? err.message : String(err),
+    let subjectRecord = await prisma.subject.findFirst({
+      where: { userId: user.id, name: analysis.subjectName },
+    });
+
+    if (!subjectRecord) {
+      subjectRecord = await prisma.subject.create({
+        data: {
+          userId: user.id,
+          name: analysis.subjectName,
+          color: analysis.subjectColor,
+        },
+      });
+    }
+
+    const document = await prisma.document.create({
+      data: {
+        userId: user.id,
+        subjectId: subjectRecord.id,
+        title: analysis.cleanTitle,
+        fileUrl,
+        filePath,
+        fileType,
+        fileSize,
+        extractedText: extractedText || analysis.summary,
+        summary: analysis.summary,
+        keyConcepts: JSON.stringify(analysis.keyConcepts),
       },
-      { status: 500 }
-    )
+    });
+
+    await prisma.flashcard.createMany({
+      data: analysis.flashcards.map((f) => ({
+        userId: user.id,
+        documentId: document.id,
+        subjectId: subjectRecord.id,
+        question: f.question,
+        answer: f.answer,
+        difficulty: f.difficulty,
+      })),
+    });
+
+    const quiz = await prisma.quiz.create({
+      data: {
+        userId: user.id,
+        documentId: document.id,
+        title: `Évaluation — ${analysis.cleanTitle}`,
+        description: `Quiz généré automatiquement pour ${analysis.subjectName}`,
+        totalQuestions: analysis.quizQuestions.length,
+        bestScore: null,
+      },
+    });
+
+    await prisma.quizQuestion.createMany({
+      data: analysis.quizQuestions.map((q, idx) => ({
+        quizId: quiz.id,
+        question: q.question,
+        options: JSON.stringify(q.options),
+        correctAnswerIndex: q.correctAnswerIndex,
+        explanation: q.explanation,
+        orderNum: idx + 1,
+      })),
+    });
+
+    return apiSuccess(
+      {
+        id: document.id,
+        user_id: document.userId,
+        subject_id: subjectRecord.id,
+        subject_name: subjectRecord.name,
+        subject_color: subjectRecord.color,
+        title: document.title,
+        file_url: document.fileUrl,
+        file_path: document.filePath,
+        file_type: document.fileType,
+        file_size: document.fileSize ? Number(document.fileSize) : null,
+        extracted_text: document.extractedText,
+        summary: document.summary,
+        key_concepts: analysis.keyConcepts,
+        flashcards_count: analysis.flashcards.length,
+        quizzes_count: 1,
+        mastery_score: 60,
+        planning_synced: true,
+        created_at: document.createdAt.toISOString(),
+        updated_at: document.updatedAt.toISOString(),
+      },
+      201
+    );
+  } catch (error) {
+    console.error('Erreur POST /api/documents :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }

@@ -1,156 +1,135 @@
-import { NextRequest, NextResponse } from "next/server"
-import { z } from "zod"
-import { requireUser } from "@/lib/supabase/server"
-import type { ApiResponse } from "@/types/api"
-import type { PomodoroSession } from "@/types/database"
+import { NextRequest } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth/get-user';
+import { createPomodoroSchema } from '@/lib/validations/pomodoro';
+import { apiSuccess, apiError } from '@/lib/api/response';
+import { prisma } from '@/lib/db/prisma';
 
-// Fallback in-memory store for local dev
-const localPomodoroSessions: PomodoroSession[] = [
-  {
-    id: "session-mock-1",
-    user_id: "00000000-0000-0000-0000-000000000000",
-    duration_minutes: 25,
-    type: "work",
-    completed_at: new Date(Date.now() - 3600_000 * 2).toISOString(),
-    created_at: new Date(Date.now() - 3600_000 * 2).toISOString(),
-  },
-  {
-    id: "session-mock-2",
-    user_id: "00000000-0000-0000-0000-000000000000",
-    duration_minutes: 25,
-    type: "work",
-    completed_at: new Date(Date.now() - 3600_000 * 4).toISOString(),
-    created_at: new Date(Date.now() - 3600_000 * 4).toISOString(),
-  },
-]
+export const dynamic = 'force-dynamic';
 
-const sessionInputSchema = z.object({
-  duration_minutes: z.number().int().positive("La durée doit être supérieure à 0"),
-  type: z.enum(["work", "short_break", "long_break"]),
-  completed_at: z.string().optional(),
-})
-
-export async function GET(): Promise<NextResponse<ApiResponse<PomodoroSession[]>>> {
+/**
+ * GET /api/pomodoro
+ * Calcule les statistiques d'étude et liste les sessions récentes depuis MySQL
+ */
+export async function GET(request: NextRequest) {
   try {
-    const auth = await requireUser()
-
-    if (!auth.error && auth.user) {
-      const { data, error } = await auth.supabase
-        .from("pomodoro_sessions")
-        .select("*")
-        .eq("user_id", auth.user.id)
-        .order("completed_at", { ascending: false })
-        .limit(50)
-
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: "Erreur lors de la récupération des sessions", details: error.message },
-          { status: 500 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: (data || []) as PomodoroSession[],
-      })
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: localPomodoroSessions,
-    })
-  } catch (err: unknown) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Erreur serveur",
-        details: err instanceof Error ? err.message : String(err),
-      },
-      { status: 500 }
-    )
+    const allSessions = await prisma.pomodoroSession.findMany({
+      where: { userId: user.id },
+      orderBy: { completedAt: 'desc' },
+      include: { subject: true },
+    });
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+    const day = now.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff).getTime();
+
+    let totalMinutesToday = 0;
+    let totalMinutesWeek = 0;
+    let countToday = 0;
+    let countWeek = 0;
+
+    for (const s of allSessions) {
+      if (s.type === 'study') {
+        const sessionTime = new Date(s.completedAt).getTime();
+        if (sessionTime >= startOfToday) {
+          totalMinutesToday += s.durationMinutes;
+          countToday += 1;
+        }
+        if (sessionTime >= startOfWeek) {
+          totalMinutesWeek += s.durationMinutes;
+          countWeek += 1;
+        }
+      }
+    }
+
+    return apiSuccess({
+      total_study_minutes_today: totalMinutesToday,
+      total_study_minutes_week: totalMinutesWeek,
+      completed_sessions_today: countToday,
+      completed_sessions_week: countWeek,
+      sessions: allSessions.slice(0, 50).map((s) => ({
+        id: s.id,
+        user_id: s.userId,
+        subject_id: s.subjectId,
+        subject_name: s.subject?.name,
+        duration_minutes: s.durationMinutes,
+        type: s.type,
+        notes: s.notes,
+        completed_at: s.completedAt.toISOString(),
+        created_at: s.createdAt.toISOString(),
+      })),
+    });
+  } catch (error) {
+    console.error('Erreur GET /api/pomodoro :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<PomodoroSession>>> {
+/**
+ * POST /api/pomodoro
+ * Enregistre une nouvelle session Pomodoro d'étude ou de pause dans MySQL
+ */
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json().catch(() => null)
-    if (!body) {
-      return NextResponse.json(
-        { success: false, error: "Corps de requête JSON manquant ou invalide" },
-        { status: 400 }
-      )
+    const { user, error: authError } = await getAuthenticatedUser(request);
+    if (!user || authError) {
+      return apiError(authError || 'Non autorisé', 401);
     }
 
-    const validation = sessionInputSchema.safeParse(body)
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Paramètres de session invalides",
-          details: validation.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      )
+    const body = await request.json();
+    const validationResult = createPomodoroSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return apiError('Données de session Pomodoro invalides', 400, {
+        errors: validationResult.error.flatten().fieldErrors,
+      });
     }
 
-    const { duration_minutes, type, completed_at } = validation.data
-    const timestamp = completed_at || new Date().toISOString()
-    const auth = await requireUser()
+    const { duration_minutes, type, subject_id, notes, completed_at } = validationResult.data;
 
-    if (!auth.error && auth.user) {
-      const { data, error } = await auth.supabase
-        .from("pomodoro_sessions")
-        .insert({
-          user_id: auth.user.id,
-          duration_minutes,
-          type,
-          completed_at: timestamp,
-        })
-        .select()
-        .single()
-
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: "Échec de l'enregistrement de la session", details: error.message },
-          { status: 500 }
-        )
-      }
-
-      return NextResponse.json(
-        {
-          success: true,
-          data: data as PomodoroSession,
-        },
-        { status: 201 }
-      )
-    }
-
-    // Local fallback store
-    const fallbackSession: PomodoroSession = {
-      id: `session-${Date.now()}`,
-      user_id: "00000000-0000-0000-0000-000000000000",
-      duration_minutes,
-      type,
-      completed_at: timestamp,
-      created_at: timestamp,
-    }
-    localPomodoroSessions.unshift(fallbackSession)
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: fallbackSession,
+    const newSession = await prisma.pomodoroSession.create({
+      data: {
+        userId: user.id,
+        durationMinutes: duration_minutes,
+        type,
+        subjectId: subject_id || null,
+        notes: notes || null,
+        completedAt: completed_at ? new Date(completed_at) : new Date(),
       },
-      { status: 201 }
-    )
-  } catch (err: unknown) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Erreur serveur",
-        details: err instanceof Error ? err.message : String(err),
+      include: {
+        subject: true,
       },
-      { status: 500 }
-    )
+    });
+
+    return apiSuccess(
+      {
+        id: newSession.id,
+        user_id: newSession.userId,
+        subject_id: newSession.subjectId,
+        subject_name: newSession.subject?.name,
+        duration_minutes: newSession.durationMinutes,
+        type: newSession.type,
+        notes: newSession.notes,
+        completed_at: newSession.completedAt.toISOString(),
+        created_at: newSession.createdAt.toISOString(),
+      },
+      201
+    );
+  } catch (error) {
+    console.error('Erreur POST /api/pomodoro :', error);
+    return apiError(
+      error instanceof Error ? error.message : 'Erreur interne du serveur',
+      500
+    );
   }
 }
