@@ -12,6 +12,13 @@
 
 ---
 
+## 🎥 Vidéo de Démonstration (Screencast)
+
+> 📹 **Démonstration en direct d'EduFlow :** [Regarder / Télécharger demo-eduflow.mp4](./public/demo-eduflow.mp4)  
+> *Présente l'expérience étudiante complète : Tableau de bord, extraction d'emploi du temps, planning intelligent, flashcards interactives, tuteur pédagogique Kocc et console Superadmin.*
+
+---
+
 ## 👥 Équipe Multi-Agents IA
 
 | Agent | Rôle | Périmètre Technologique |
