@@ -6,7 +6,9 @@
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?logo=next.js)](https://nextjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth-emerald?logo=supabase)](https://supabase.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)](https://www.prisma.io/)
+[![MariaDB / TiDB](https://img.shields.io/badge/Database-MariaDB_%2F_TiDB-003545?logo=mariadb)](https://mariadb.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)](https://www.docker.com/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_%26_2.0_Flash-orange?logo=google)](https://ai.google.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -25,17 +27,17 @@
 
 | Agent | Rôle | Périmètre Technologique |
 | :--- | :--- | :--- |
-| **Agent 1** | **Backend & Data Engineer** | Supabase (PostgreSQL, Auth, Storage), API Routes Next.js, Gemini API (OCR, RAG, GenAI) |
+| **Agent 1** | **Backend & Data Engineer** | Prisma ORM (MariaDB / MySQL / TiDB), API Routes Next.js, Auth JWT, Gemini API (Vision, OCR, Flash, RAG) |
 | **Agent 2** | **Frontend & UI/UX Engineer** | Next.js App Router, Tailwind CSS, Shadcn/UI, React Native / Expo, State Management |
-| **Agent 3** | **Auditor, QA & Lead Integrator** | Code Review, Audit RLS & Sécurité, Tests d'Intégration, Conformité Hackathon |
+| **Agent 3** | **Auditor, QA & Lead Integrator** | Code Review, Audit Sécurité & RBAC, Tests d'Intégration, Conformité Hackathon |
 
 ---
 
 ## ✨ Fonctionnalités Clés du MVP
 
 1. **🔐 Authentification & Profil Académique (Module 1) :**
-   - Inscription et connexion sécurisées via Supabase Auth.
-   - Création automatique du profil via trigger PostgreSQL `on_auth_user_created`.
+   - Inscription et connexion sécurisées via JWT et hachage bcrypt.
+   - Initialisation automatique du profil étudiant avec préférences académiques.
    - Paramétrage du niveau d'études, domaine et objectifs académiques.
 
 2. **📸 OCR & Extraction d'Emploi du Temps par IA (Module 2) :**
@@ -53,7 +55,7 @@
    - Rendu Markdown avec formules mathématiques KaTeX et coloration syntaxique de code.
 
 5. **📚 Gestionnaire de Cours, Synthèse, Flashcards & Quiz (Modules 5 & 6) :**
-   - Stockage sécurisé des cours dans Supabase Storage.
+   - Stockage et extraction de texte de cours (PDF, texte) avec upload sécurisé.
    - Synthèse automatique avec extraction de concepts clés.
    - Génération de cartes mémoires (flashcards) pour mémorisation active (active recall).
    - QCM interactifs auto-évalués avec explications détaillées.
@@ -67,46 +69,112 @@
 
 ---
 
-## ⚡ Lancement Rapide (Quickstart)
+## ⚡ Démarrage Rapide (Quickstart)
 
-### 1. Cloner et Installer
+### 🐳 Méthode 1 : Démarrage Clé en Main avec Docker (Méthode Recommandée)
+
+Cette méthode lance l'intégralité de la pile (**Application Next.js 14 + Base de données MariaDB 10.11**) en une seule commande, sans nécessiter l'installation locale de Node.js ou d'un serveur MySQL.
+
+#### 1. Prérequis
+- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/) installés et en cours d'exécution.
+
+#### 2. Cloner le Dépôt
 ```bash
-git clone https://github.com/votre-org/eduflow.git
+git clone https://github.com/eMb0811/eduflow.git
 cd eduflow
-npm install
 ```
 
-### 2. Configurer l'Environnement
-Copiez le modèle de configuration et renseignez vos clés :
+#### 3. (Optionnel) Configurer vos Clés d'API
+Un fichier `.env` ou `.env.local` peut être utilisé pour surcharger les clés par défaut :
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
+> **Note :** Le fichier `docker-compose.yml` contient déjà des valeurs par défaut opérationnelles pour tester instantanément la plateforme.
 
-Variables requises dans `.env.local` :
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://votre-projet.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=votre-cle-anonyme
-SUPABASE_SERVICE_ROLE_KEY=votre-cle-service-role
-GEMINI_API_KEY=votre-cle-gemini-api
-```
-
-### 3. Appliquer les Migrations Supabase
-Copiez et exécutez le script SQL idempotent dans le **SQL Editor** de Supabase :
-👉 `supabase/migrations/20261011000001_initial_schema.sql`
-
-### 4. Démarrer le Serveur en Développement
-```bash
-npm run dev
-```
-Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
-
-### 5. Démarrer avec Docker & Docker Compose
-Pour déployer instantanément EduFlow et sa base MySQL 8 avec initialisation automatique :
+#### 4. Lancer les Conteneurs
 ```bash
 docker compose up -d --build
 ```
-- **Application Next.js :** [http://localhost:3000](http://localhost:3000)
-- **Base MySQL :** `localhost:3306` (schéma et comptes pré-initialisés via `PRISMA_SEED=true`).
+
+#### 🔄 Ce qui s'exécute automatiquement :
+1. **Conteneur Base de Données (`eduflow-mysql`) :** Démarre MariaDB 10.11 LTS, configure l'utilisateur `eduflow` et initialise le `healthcheck`.
+2. **Conteneur Application (`eduflow-app`) :** Compile l'application Next.js en mode multi-stage sécurisé (utilisateur non-root `nextjs:nodejs` UID 1001).
+3. **Point d'Entrée Intelligent (`docker-entrypoint.sh`) :**
+   - Attend activement la disponibilité complète de MariaDB (boucle de résilience réseau).
+   - Exécute `npx prisma db push` pour synchroniser le schéma relationnel.
+   - Exécute `npx tsx prisma/seed.ts` (si `PRISMA_SEED=true`) pour insérer les comptes de démonstration et les jeux d'essai.
+   - Démarre le serveur Next.js de production sur le port `3000`.
+
+#### 🌐 Points d'Accès
+- **Application Web :** [http://localhost:3000](http://localhost:3000)
+- **Base de Données MariaDB :** `localhost:3306` (Base: `eduflow`, User: `eduflow`, Password: `eduflow`)
+- **Vérification de Santé (Healthcheck) :** [http://localhost:3000/api/health](http://localhost:3000/api/health)
+
+#### 🔑 Identifiants Préconfigurés (Prêts à Tester)
+| Rôle | Adresse E-mail | Mot de Passe | Description |
+| :--- | :--- | :--- | :--- |
+| **🎓 Étudiant** | `demo@eduflow.app` | `Password123!` | Compte étudiant complet avec cours de démonstration, flashcards 3D, QCM et créneaux de révision |
+| **🛡️ Super Admin** | `admin@eduflow.app` | `Password123!` | Accès direct à `/admin` : métriques d'adoption, gestion des comptes, audit logs |
+
+#### 🛠️ Commandes Docker Utiles au Quotidien
+```bash
+# Consulter les logs en temps réel de l'application
+docker compose logs -f app
+
+# Consulter les logs du serveur MariaDB
+docker compose logs -f mysql
+
+# Arrêter les conteneurs
+docker compose down
+
+# Arrêter et réinitialiser complètement la base de données (supprimer les volumes)
+docker compose down -v
+
+# Reconstruire les images Docker à neuf (sans cache)
+docker compose build --no-cache
+```
+
+---
+
+### 💻 Méthode 2 : Démarrage Local (Mode Développement Node.js)
+
+Si vous préférez exécuter l'application directement avec Node.js sur votre machine :
+
+#### 1. Installer les Dépendances
+```bash
+npm install
+```
+
+#### 2. Configurer les Variables d'Environnement
+Copiez le fichier d'exemple :
+```bash
+cp .env.example .env
+```
+Renseignez votre chaîne de connexion `DATABASE_URL` (MariaDB/MySQL local ou TiDB Cloud Serverless) et vos clés :
+```env
+DATABASE_URL="mysql://eduflow:eduflow@localhost:3306/eduflow"
+JWT_SECRET="votre-secret-jwt-aleatoire-et-securise"
+GEMINI_API_KEY="votre-cle-gemini-api"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
+
+#### 3. Initialiser la Base de Données & Seeder
+```bash
+# Générer le client Prisma
+npm run db:generate
+
+# Synchroniser le schéma Prisma avec votre base
+npm run db:push
+
+# Peupler la base avec les données de démonstration
+npm run db:seed
+```
+
+#### 4. Démarrer le Serveur de Développement
+```bash
+npm run dev
+```
+Rendez-vous sur [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -132,14 +200,17 @@ npm run build
 
 ## 🔒 Sécurité & Bonnes Pratiques
 
-- **Row Level Security (RLS) :** Activée sur 100% des tables PostgreSQL pour empêcher toute fuite de données entre étudiants.
-- **Zéro Clé Exposée :** La clé secrète `GEMINI_API_KEY` et `SUPABASE_SERVICE_ROLE_KEY` restent exclusivement sur le serveur.
-- **Validation Zod :** Toutes les routes protégées valident rigoureusement les entrées pour éliminer les injections et payloads corrompus.
+- **Authentification Sécurisée :** JWT chiffrés (HS256) transmis via cookies sécurisés `HttpOnly` et `SameSite=lax`.
+- **Hachage Fort des Mots de Passe :** `bcryptjs` avec salt dédié pour chaque utilisateur.
+- **Isolation des Données & Contrôle d'Accès :** Requêtes Prisma scopées systématiquement par `userId` extrait du JWT validé côté serveur. Contrôle RBAC strict pour les routes d'administration.
+- **Zéro Clé Exposée :** La clé secrète `GEMINI_API_KEY` et `JWT_SECRET` restent exclusivement confinées côté serveur.
+- **Validation Zod Stricte :** Toutes les routes protégées valident rigoureusement les entrées pour éliminer les injections SQL et les payloads malformés.
 - **Tolérance aux Pannes IA :** Parsing défensif avec extraction par regex et retries automatiques pour les réponses JSON de Gemini.
+- **Conteneurisation Hardened :** Conteneur Docker exécuté sous un utilisateur système non-root (`nextjs:nodejs` UID 1001) avec build multi-étape allégé.
 
 ---
 
 ## 📄 Licence
 
-Ce projet est sous licence **MIT** — voir le fichier [LICENSE](file:///c:/workspace/dev/eduflow/LICENSE) pour plus de détails.
+Ce projet est sous licence **MIT** — voir le fichier [LICENSE](./LICENSE) pour plus de détails.
 Projet développé pour le **Hackathon Open Source × AI 2026**.
