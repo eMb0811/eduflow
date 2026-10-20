@@ -14,8 +14,10 @@
 
 ## 🎥 Vidéo de Démonstration (Screencast)
 
-> 📹 **Démonstration en direct d'EduFlow :** [Regarder / Télécharger demo-eduflow.mp4](./public/demo-eduflow.mp4)  
-> *Présente l'expérience étudiante complète : Tableau de bord, extraction d'emploi du temps, planning intelligent, flashcards interactives, tuteur pédagogique Kocc et console Superadmin.*
+[![Visionner la Démo Vidéo sur GitHub](https://img.shields.io/badge/▶️_Regarder_la_Vidéo_de_Démo_sur_GitHub-demo--eduflow.mp4-emerald?style=for-the-badge&logo=github)](https://github.com/eMb0811/eduflow/blob/main/public/demo-eduflow.mp4)
+
+> 📹 **Lien direct GitHub :** [https://github.com/eMb0811/eduflow/blob/main/public/demo-eduflow.mp4](https://github.com/eMb0811/eduflow/blob/main/public/demo-eduflow.mp4)  
+> *Démonstration complète de la plateforme : Tableau de bord étudiant, import d'emploi du temps par vision IA, planning de révision automatique, flashcards 3D, QCM interactif, tuteur pédagogique Kocc Barma et console Super Administrateur.*
 
 ---
 
